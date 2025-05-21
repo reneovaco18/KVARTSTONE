@@ -1,0 +1,48 @@
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/splashFragment">
+
+    <fragment
+        android:id="@+id/splashFragment"
+        android:name="com.rench.kvartstone.ui.Splash.SplashFragment"
+        android:label="Splash" />
+
+    <fragment
+        android:id="@+id/mainMenuFragment"
+        android:name="com.rench.kvartstone.ui.MainMenu.MainMenuFragment"
+        android:label="Main Menu">
+
+        <action
+            android:id="@+id/action_mainMenuFragment_to_gameSetupFragment"
+            app:destination="@id/gameSetupFragment" />
+
+        <action
+            android:id="@+id/action_mainMenuFragment_to_deckListFragment"
+            app:destination="@id/deckListFragment" />
+    </fragment>
+
+    <action
+        android:id="@+id/action_splashFragment_to_mainMenuFragment"
+        app:destination="@id/mainMenuFragment" />
+
+    <fragment
+        android:id="@+id/gameSetupFragment"
+        android:name="com.rench.kvartstone.ui.GameSetup"
+        android:label="Game Setup">
+
+        <action
+            android:id="@+id/action_gameSetupFragment_to_gamePlayFragment"
+            app:destination="@id/gamePlayFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/gamePlayFragment"
+        android:name="com.rench.kvartstone.ui.GamePlay"
+        android:label="Game Play" />
+
+    <fragment
+        android:id="@+id/deckListFragment"
+        android:name="com.rench.kvartstone.ui.DeckManager.DeckListFragment"
+        android:label="Deck List" />
+</navigation>

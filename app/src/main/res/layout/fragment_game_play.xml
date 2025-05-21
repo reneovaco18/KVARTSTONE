@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Bot Hero Area -->
+    <LinearLayout
+        android:id="@+id/botHeroArea"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/botHeroImage"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/ic_hero_bot"
+            android:background="@drawable/hero_frame"/>
+
+        <TextView
+            android:id="@+id/botHeroHealth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Health: 20/20"
+            android:layout_marginStart="8dp"/>
+    </LinearLayout>
+
+    <!-- Bot Board -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/botBoardRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="110dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/botHeroArea"/>
+
+    <!-- Game Status -->
+    <TextView
+        android:id="@+id/gameStatusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Game starting..."
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/botBoardRecyclerView"
+        app:layout_constraintBottom_toTopOf="@id/playerBoardRecyclerView"/>
+
+    <!-- Player Board -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/playerBoardRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="110dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toTopOf="@id/playerHeroArea"/>
+
+    <!-- Player Hero Area -->
+    <LinearLayout
+        android:id="@+id/playerHeroArea"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        app:layout_constraintBottom_toTopOf="@id/playerHandRecyclerView">
+
+        <ImageView
+            android:id="@+id/playerHeroImage"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:src="@drawable/ic_hero_player"
+            android:background="@drawable/hero_frame"/>
+
+        <TextView
+            android:id="@+id/playerHeroHealth"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Health: 20/20"
+            android:layout_marginStart="8dp"/>
+
+        <TextView
+            android:id="@+id/playerManaText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mana: 1"
+            android:layout_marginStart="16dp"/>
+
+        <Button
+            android:id="@+id/endTurnButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="End Turn"
+            android:layout_marginStart="16dp"/>
+    </LinearLayout>
+
+    <!-- Player Hand -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/playerHandRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+</androidx.constraintlayout.widget.ConstraintLayout>
