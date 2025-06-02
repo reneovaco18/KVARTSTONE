@@ -52,6 +52,7 @@
         app:layout_constraintBottom_toTopOf="@id/playerBoardRecyclerView"/>
 
     <!-- Player Board -->
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/playerBoardRecyclerView"
         android:layout_width="match_parent"
@@ -75,7 +76,14 @@
             android:layout_height="60dp"
             android:src="@drawable/ic_hero_player"
             android:background="@drawable/hero_frame"/>
-
+        <Button
+            android:id="@+id/heroPowerButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Hero Power"
+            android:layout_marginStart="16dp"
+            android:layout_marginTop="8dp"
+            android:layout_gravity="center_horizontal"/>
         <TextView
             android:id="@+id/playerHeroHealth"
             android:layout_width="wrap_content"
@@ -89,7 +97,15 @@
             android:layout_height="wrap_content"
             android:text="Mana: 1"
             android:layout_marginStart="16dp"/>
-
+        <TextView
+            android:id="@+id/turnNumberText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Turn: 1"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"/>
         <Button
             android:id="@+id/endTurnButton"
             android:layout_width="wrap_content"

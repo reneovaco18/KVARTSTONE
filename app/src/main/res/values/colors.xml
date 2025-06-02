@@ -11,5 +11,14 @@
     <color name="minion_brown">#964B00</color>
     <color name="attack_red">#880808</color>
     <color name="healthy_green">#00FF00</color>
+    <color name="divine_shield_gold">#FFD700</color>
+    <color name="spell_blue">#4169E1</color>
+    <color name="selected_green">#32CD32</color>
+    <color name="dead_red">#8B0000</color>
+    <color name="damaged_orange">#FFA500</color>
+    <color name="buffed_blue">#87CEEB</color>
+    <color name="hero_health_high">#4CAF50</color>
+    <color name="hero_health_medium">#FFC107</color>
+    <color name="hero_health_low">#F44336</color>
 
 </resources>

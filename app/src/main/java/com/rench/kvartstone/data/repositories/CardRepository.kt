@@ -29,7 +29,7 @@ class CardRepository(private val context: Context) {
                 manaCost = entity.manaCost,
                 imageRes = resourceId,
                 attack = entity.attack ?: 0,
-                health = entity.health ?: 1
+                maxHealth = entity.health ?: 1 // Changed from 'health' to 'maxHealth'
             )
             "spell" -> SpellCard(
                 id = entity.id,

@@ -28,7 +28,7 @@
 
     <fragment
         android:id="@+id/gameSetupFragment"
-        android:name="com.rench.kvartstone.ui.GameSetup"
+        android:name="com.rench.kvartstone.ui.GameSetup.GameSetupFragment"
         android:label="Game Setup">
 
         <action
@@ -38,8 +38,13 @@
 
     <fragment
         android:id="@+id/gamePlayFragment"
-        android:name="com.rench.kvartstone.ui.GamePlay"
-        android:label="Game Play" />
+        android:name="com.rench.kvartstone.ui.GamePlay.GamePlayFragment"
+        android:label="Game Play">
+        <argument
+            android:name="difficulty"
+            app:argType="string"
+            android:defaultValue="normal" />
+    </fragment>
 
     <fragment
         android:id="@+id/deckListFragment"

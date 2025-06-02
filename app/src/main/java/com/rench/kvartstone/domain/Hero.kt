@@ -2,13 +2,14 @@ package com.rench.kvartstone.domain
 
 data class Hero(
     val name: String,
+    val maxHealth: Int,
     val imageRes: Int,
+    val heroPower: HeroPower,
     val heroPowerImageRes: Int,
-    var maxHealth: Int = 30,
     var currentHealth: Int = maxHealth,
-    var armor: Int = 0,
-    val heroPower: HeroPower
-) {
+    var armor: Int = 0
+)
+ {
     fun takeDamage(amount: Int) {
         val actualDamage = if (armor >= amount) {
             armor -= amount

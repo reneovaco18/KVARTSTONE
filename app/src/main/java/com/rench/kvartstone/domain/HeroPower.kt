@@ -1,12 +1,11 @@
 package com.rench.kvartstone.domain
 
+// HeroPower.kt
 data class HeroPower(
     val name: String,
     val cost: Int,
     val imageRes: Int,
-    val description: String,
     val effect: (GameEngine, Any?) -> Unit,
-    val targetingType: TargetingType = TargetingType.NO_TARGET,
     var usedThisTurn: Boolean = false
 ) {
     fun canUse(currentMana: Int): Boolean {
