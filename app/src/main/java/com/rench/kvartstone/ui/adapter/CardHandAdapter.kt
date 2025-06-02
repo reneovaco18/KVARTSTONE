@@ -1,4 +1,3 @@
-// CardHandAdapter.kt
 package com.rench.kvartstone.ui.adapters
 
 import android.view.LayoutInflater
@@ -6,6 +5,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.cardview.widget.CardView
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -15,24 +15,29 @@ import com.rench.kvartstone.domain.MinionCard
 import com.rench.kvartstone.domain.SpellCard
 
 class CardHandAdapter(
-    private val onCardClick: (Int) -> Unit
+    private val onCardClick: (Int) -> Unit,
+    private val canPlayCard: (Int) -> Boolean,
+    private val isCardSelected: (Int) -> Boolean
 ) : ListAdapter<Card, CardHandAdapter.CardViewHolder>(CardDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_card_hand, parent, false)
-        return CardViewHolder(view, onCardClick)
+        return CardViewHolder(view, onCardClick, canPlayCard, isCardSelected)
     }
 
     override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
-        holder.bind(getItem(position))
+        holder.bind(getItem(position), position)
     }
 
     class CardViewHolder(
         itemView: View,
-        private val onCardClick: (Int) -> Unit
+        private val onCardClick: (Int) -> Unit,
+        private val canPlayCard: (Int) -> Boolean,
+        private val isCardSelected: (Int) -> Boolean
     ) : RecyclerView.ViewHolder(itemView) {
 
+        private val cardView: CardView = itemView as CardView
         private val cardImage: ImageView = itemView.findViewById(R.id.cardImage)
         private val cardName: TextView = itemView.findViewById(R.id.cardName)
         private val cardMana: TextView = itemView.findViewById(R.id.cardMana)
@@ -45,22 +50,54 @@ class CardHandAdapter(
             }
         }
 
-        fun bind(card: Card) {
+        fun bind(card: Card, position: Int) {
             cardImage.setImageResource(card.imageRes)
             cardName.text = card.name
             cardMana.text = card.manaCost.toString()
 
+            // Show/hide attack and health based on card type
             when (card) {
                 is MinionCard -> {
                     cardAttack.visibility = View.VISIBLE
                     cardHealth.visibility = View.VISIBLE
                     cardAttack.text = card.attack.toString()
-                    cardHealth.text = card.health.toString()
+                    cardHealth.text = card.maxHealth.toString()
+
+                    // Show divine shield indicator
+                    if (card.hasDivineShield) {
+                        cardView.setCardBackgroundColor(itemView.context.getColor(R.color.divine_shield_gold))
+                    }
                 }
                 is SpellCard -> {
                     cardAttack.visibility = View.GONE
                     cardHealth.visibility = View.GONE
+                    cardView.setCardBackgroundColor(itemView.context.getColor(R.color.spell_blue))
                 }
+            }
+
+            // Visual feedback for playability and selection
+            val canPlay = canPlayCard(position)
+            val selected = isCardSelected(position)
+
+            itemView.alpha = if (canPlay) 1.0f else 0.5f
+
+            if (selected) {
+                cardView.setCardBackgroundColor(itemView.context.getColor(R.color.selected_green))
+                cardView.cardElevation = 12f
+            } else {
+                when (card) {
+                    is MinionCard -> {
+                        if (card.hasDivineShield) {
+                            cardView.setCardBackgroundColor(itemView.context.getColor(R.color.divine_shield_gold))
+                        } else {
+                            cardView.setCardBackgroundColor(itemView.context.getColor(R.color.minion_brown))
+                        }
+                    }
+                    is SpellCard -> {
+                        cardView.setCardBackgroundColor(itemView.context.getColor(R.color.spell_blue))
+                    }
+                }
+                cardView.cardElevation = 4f
             }
         }
     }

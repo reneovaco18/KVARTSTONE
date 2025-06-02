@@ -1,9 +1,6 @@
-// GameEngine.kt
 package com.rench.kvartstone.domain
 
 import kotlin.random.Random
-
-enum class Turn { PLAYER, BOT }
 
 class GameEngine(
     playerDeckCards: List<Card>,
@@ -11,25 +8,29 @@ class GameEngine(
     val playerHero: Hero,
     val botHero: Hero
 ) {
-    // Game state
+    companion object {
+        lateinit var current: GameEngine
+    }
+
     var currentTurn = Turn.PLAYER
     var playerMana = 1
     var botMana = 1
+    var playerMaxMana = 1
+    var botMaxMana = 1
     var turnNumber = 1
 
-    // Cards
-    val playerDeck = playerDeckCards.toMutableList()
-    val botDeck = botDeckCards.toMutableList()
+    val playerDeck = playerDeckCards.toMutableList().shuffled().toMutableList()
+    val botDeck = botDeckCards.toMutableList().shuffled().toMutableList()
     val playerHand = mutableListOf<Card>()
     val botHand = mutableListOf<Card>()
     val playerBoard = mutableListOf<MinionCard>()
     val botBoard = mutableListOf<MinionCard>()
 
-    // Game state flags
     var gameOver = false
     var playerWon = false
 
     init {
+        current = this
         // Initial draw
         repeat(3) { drawCardForPlayer() }
         repeat(4) { drawCardForBot() }
@@ -39,7 +40,9 @@ class GameEngine(
         if (playerDeck.isEmpty()) return null
 
         val card = playerDeck.removeAt(0)
-        playerHand.add(card)
+        if (playerHand.size < 10) { // Hand limit
+            playerHand.add(card)
+        }
         return card
     }
 
@@ -47,7 +50,9 @@ class GameEngine(
         if (botDeck.isEmpty()) return null
 
         val card = botDeck.removeAt(0)
-        botHand.add(card)
+        if (botHand.size < 10) { // Hand limit
+            botHand.add(card)
+        }
         return card
     }
 
@@ -55,169 +60,189 @@ class GameEngine(
         if (currentTurn != Turn.PLAYER || cardIndex >= playerHand.size) return false
 
         val card = playerHand[cardIndex]
-
-        // Check mana
         if (card.manaCost > playerMana) return false
+
+        playerMana -= card.manaCost
+        playerHand.removeAt(cardIndex)
 
         when (card) {
             is MinionCard -> {
-                // Check if board is full
-                if (playerBoard.size >= 7) return false
+                if (playerBoard.size < 7) { // Board limit
+                    card.summoned = true
+                    card.canAttackThisTurn = false // Summoning sickness
+                    playerBoard.add(card)
 
-                playerHand.removeAt(cardIndex)
-                playerBoard.add(card)
-                card.canAttackThisTurn = false // Summoning sickness
-                playerMana -= card.manaCost
-                return true
+                    // Trigger battlecry if it requires a target
+                    val targets = if (target != null) listOf(target) else emptyList()
+                    card.triggerBattlecry(this, targets)
+                }
             }
-
             is SpellCard -> {
-                playerHand.removeAt(cardIndex)
-                playerMana -= card.manaCost
-                card.effect(this, listOfNotNull(target))
-                return true
+                val targets = if (target != null) listOf(target) else emptyList()
+                card.cast(this, targets)
             }
         }
+
+        // Clean up dead minions
+        cleanupDeadMinions()
+        return true
     }
 
     fun playerMinionAttack(attackerIndex: Int, targetType: String, targetIndex: Int = -1): Boolean {
         if (currentTurn != Turn.PLAYER || attackerIndex >= playerBoard.size) return false
 
         val attacker = playerBoard[attackerIndex]
+        if (!attacker.canAttack()) return false
 
-        if (!attacker.canAttackThisTurn || attacker.hasAttackedThisTurn) return false
-
-        when (targetType) {
-            "hero" -> {
-                botHero.takeDamage(attacker.attack)
-                attacker.hasAttackedThisTurn = true
-
-                if (botHero.isDead) {
-                    gameOver = true
-                    playerWon = true
-                }
-
-                return true
-            }
-
+        val target = when (targetType) {
+            "hero" -> botHero
             "minion" -> {
-                if (targetIndex >= botBoard.size) return false
-
-                val target = botBoard[targetIndex]
-                target.takeDamage(attacker.attack)
-                attacker.takeDamage(target.attack)
-                attacker.hasAttackedThisTurn = true
-
-                // Remove dead minions
-                if (target.isDead) {
-                    botBoard.remove(target)
-                }
-
-                if (attacker.isDead) {
-                    playerBoard.remove(attacker)
-                }
-
-                return true
+                if (targetIndex >= 0 && targetIndex < botBoard.size) {
+                    botBoard[targetIndex]
+                } else null
             }
-
-            else -> return false
+            else -> null
         }
+
+        return if (target != null) {
+            attack(attacker, target)
+        } else false
     }
 
-    fun endTurn() {
-        if (currentTurn == Turn.PLAYER) {
-            currentTurn = Turn.BOT
-            botTakeTurn()
-        } else {
-            currentTurn = Turn.PLAYER
-            turnNumber++
-            playerMana = minOf(10, turnNumber)
+    fun attack(attacker: MinionCard, target: Any): Boolean {
+        if (!attacker.canAttack()) return false
 
-            // Reset player minions for new turn
-            playerBoard.forEach { it.resetForTurn() }
-            playerHero.resetForTurn()
-
-            // Draw card for player
-            drawCardForPlayer()
+        when (target) {
+            is MinionCard -> {
+                // Both minions take damage
+                attacker.takeDamage(target.attack)
+                target.takeDamage(attacker.attack)
+            }
+            is Hero -> {
+                target.takeDamage(attacker.attack)
+                if (target.isDead()) {
+                    endGame(target == botHero)
+                }
+            }
         }
+
+        attacker.hasAttackedThisTurn = true
+        cleanupDeadMinions()
+        return true
     }
 
-    private fun botTakeTurn() {
-        // Simple AI implementation
-        botMana = minOf(10, turnNumber)
-        drawCardForBot()
+    fun botPlayCard(): Boolean {
+        if (botHand.isEmpty()) return false
 
-        // Reset bot minions for new turn
-        botBoard.forEach { it.resetForTurn() }
-        botHero.resetForTurn()
-
-        // Play cards if possible (very simple AI)
-        val cardsToPlay = botHand.indices.filter {
-            botHand[it].manaCost <= botMana
-        }.shuffled()
-
-        for (cardIndex in cardsToPlay) {
-            val card = botHand[cardIndex]
+        // Simple AI: Play first affordable card
+        for (i in botHand.indices) {
+            val card = botHand[i]
             if (card.manaCost <= botMana) {
+                botMana -= card.manaCost
+                botHand.removeAt(i)
+
                 when (card) {
                     is MinionCard -> {
                         if (botBoard.size < 7) {
-                            botHand.removeAt(cardIndex)
+                            card.summoned = true
+                            card.canAttackThisTurn = false
                             botBoard.add(card)
-                            botMana -= card.manaCost
-                            break // Play one card per turn for now
+
+                            // Simple battlecry targeting
+                            val targets = if (playerBoard.isNotEmpty()) {
+                                listOf(playerBoard.random())
+                            } else {
+                                listOf(playerHero)
+                            }
+                            card.triggerBattlecry(this, targets)
                         }
                     }
-
                     is SpellCard -> {
-                        // Simple targeting for spells
-                        val target = if (playerBoard.isNotEmpty()) {
-                            playerBoard[Random.nextInt(playerBoard.size)]
-                        } else {
-                            playerHero
+                        // Simple spell targeting
+                        val targets = when (card.targetingType) {
+                            TargetingType.SINGLE_MINION -> {
+                                if (playerBoard.isNotEmpty()) listOf(playerBoard.random()) else emptyList()
+                            }
+                            TargetingType.SINGLE_CHARACTER -> {
+                                val allTargets = playerBoard + listOf(playerHero)
+                                if (allTargets.isNotEmpty()) listOf(allTargets.random()) else emptyList()
+                            }
+                            else -> emptyList()
                         }
-
-                        botHand.removeAt(cardIndex)
-                        botMana -= card.manaCost
-                        card.effect(this, listOf(target))
-                        break // Play one card per turn for now
+                        card.cast(this, targets)
                     }
                 }
+
+                cleanupDeadMinions()
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun cleanupDeadMinions() {
+        playerBoard.removeAll { it.isDead() }
+        botBoard.removeAll { it.isDead() }
+    }
+
+    fun endTurn() {
+        when (currentTurn) {
+            Turn.PLAYER -> {
+                currentTurn = Turn.BOT
+                botBoard.forEach { it.resetForNewTurn() }
+                playerHero.resetHeroPower()
+                botTurn()
+            }
+            Turn.BOT -> {
+                currentTurn = Turn.PLAYER
+                turnNumber++
+
+                // Increase mana
+                playerMaxMana = minOf(playerMaxMana + 1, 10)
+                botMaxMana = minOf(botMaxMana + 1, 10)
+                playerMana = playerMaxMana
+                botMana = botMaxMana
+
+                // Draw cards
+                drawCardForPlayer()
+                drawCardForBot()
+
+                // Reset for new turn
+                playerBoard.forEach { it.resetForNewTurn() }
+                botHero.resetHeroPower()
+            }
+        }
+    }
+
+    private fun botTurn() {
+        // Bot AI logic
+        while (botPlayCard()) {
+            // Keep playing cards until no more can be played
+        }
+
+        // Attack with all available minions
+        botBoard.filter { it.canAttack() }.forEach { minion ->
+            val targets = playerBoard + listOf(playerHero)
+            if (targets.isNotEmpty()) {
+                attack(minion, targets.random())
             }
         }
 
-        // Attack with minions
-        for (attacker in botBoard.filter { it.canAttackThisTurn }) {
-            if (playerBoard.isNotEmpty()) {
-                // Attack a random player minion
-                val targetIndex = Random.nextInt(playerBoard.size)
-                val target = playerBoard[targetIndex]
-
-                target.takeDamage(attacker.attack)
-                attacker.takeDamage(target.attack)
-                attacker.hasAttackedThisTurn = true
-
-                // Remove dead minions
-                if (target.isDead) {
-                    playerBoard.remove(target)
-                }
-
-                if (attacker.isDead) {
-                    botBoard.remove(attacker)
-                }
-            } else {
-                // Attack player hero
-                playerHero.takeDamage(attacker.attack)
-                attacker.hasAttackedThisTurn = true
-
-                if (playerHero.isDead) {
-                    gameOver = true
-                    playerWon = false
-                }
-            }
-        }
-
-        // End turn
         endTurn()
+    }
+
+    fun endGame(playerWins: Boolean) {
+        gameOver = true
+        playerWon = playerWins
+    }
+
+    fun useHeroPower(target: Any? = null): Boolean {
+        if (currentTurn != Turn.PLAYER) return false
+
+        if (playerHero.heroPower.canUse(playerMana)) {
+            playerHero.heroPower.use(this, target)
+            return true
+        }
+        return false
     }
 }

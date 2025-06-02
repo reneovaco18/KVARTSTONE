@@ -1,27 +1,37 @@
-// Hero.kt
 package com.rench.kvartstone.domain
 
-class Hero(
+data class Hero(
     val name: String,
-    val maxHealth: Int = 20,
     val imageRes: Int,
-    val heroPowerImageRes: Int
+    val heroPowerImageRes: Int,
+    var maxHealth: Int = 30,
+    var currentHealth: Int = maxHealth,
+    var armor: Int = 0,
+    val heroPower: HeroPower
 ) {
-    var currentHealth = maxHealth
-    var heroPowerUsed = false
-
     fun takeDamage(amount: Int) {
-        currentHealth -= amount
+        val actualDamage = if (armor >= amount) {
+            armor -= amount
+            0
+        } else {
+            val remainingDamage = amount - armor
+            armor = 0
+            remainingDamage
+        }
+        currentHealth -= actualDamage
     }
 
     fun heal(amount: Int) {
-        currentHealth = minOf(maxHealth, currentHealth + amount)
+        currentHealth = minOf(currentHealth + amount, maxHealth)
     }
 
-    fun resetForTurn() {
-        heroPowerUsed = false
+    fun isDead(): Boolean = currentHealth <= 0
+
+    fun addArmor(amount: Int) {
+        armor += amount
     }
 
-    val isDead: Boolean
-        get() = currentHealth <= 0
+    fun resetHeroPower() {
+        heroPower.resetForNewTurn()
+    }
 }
