@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="card_effects">
+        <item>No Effect</item>
+        <item>Deal 2 Damage</item>
+        <item>Heal 2 Health</item>
+        <item>Draw a Card</item>
+        <item>Gain 2 Armor</item>
+        <item>Taunt</item>
+        <item>Divine Shield</item>
+        <item>Battlecry: Deal 1 Damage</item>
+        <item>Charge</item>
+        <item>Lifesteal</item>
+    </string-array>
+</resources>

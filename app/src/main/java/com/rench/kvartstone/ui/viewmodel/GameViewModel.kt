@@ -55,53 +55,39 @@ class GameViewModel : ViewModel() {
     private val _selectedMinion = MutableLiveData<Int?>(null)
     val selectedMinion: LiveData<Int?> = _selectedMinion
 
-    fun initializeGame(difficulty: String) {
-        // Create hero powers
-        val playerPower = HeroPower(
-            name = "Fireblast",
-            cost = 2,
-            imageRes = R.drawable.ic_hero_power_player,
-            effect = { engine, _ -> engine.botHero.takeDamage(1) }
-        )
+    fun initializeGame(heroPowerId: Int, deckId: Int) {
+        viewModelScope.launch {
+            val heroPowerRepo = HeroPowerRepository(getApplication())
+            val deckRepo = DeckRepository(getApplication())
 
-        val botPower = HeroPower(
-            name = "Armor Up",
-            cost = 2,
-            imageRes = R.drawable.ic_hero_power_bot,
-            effect = { engine, _ -> engine.botHero.armor += 2 }
-        )
+            val selectedHeroPower = heroPowerRepo.getHeroPowerById(heroPowerId)
+            val selectedDeck = deckRepo.getDeckById(deckId)
 
-        // Create heroes with hero powers
-        val playerHeroObj = Hero(
-            name = "Player",
-            maxHealth = 20,
-            imageRes = R.drawable.ic_hero_player,
-            heroPower = playerPower,
-            heroPowerImageRes = R.drawable.ic_hero_power_player
-        )
+            val playerHero = Hero(
+                name = "Player",
+                maxHealth = 30,
+                imageRes = R.drawable.hero_mage_icon, // Change to: R.drawable.hero_mage_icon
+                heroPower = selectedHeroPower,
+                heroPowerImageRes = selectedHeroPower.imageRes
+            )
 
-        val botHeroObj = Hero(
-            name = "Bot",
-            maxHealth = when(difficulty) {
-                "easy" -> 15
-                "hard" -> 25
-                else -> 20
-            },
-            imageRes = R.drawable.ic_hero_bot,
-            heroPower = botPower,
-            heroPowerImageRes = R.drawable.ic_hero_power_bot
-        )
+            val botHero = Hero(
+                name = "Bot",
+                maxHealth = 30,
+                imageRes = R.drawable.hero_frame,
+                heroPower = createDefaultBotHeroPower(),
+                heroPowerImageRes = R.drawable.hero_power_fire
+            )
 
-        // Initialize game engine with sample decks
-        gameEngine = GameEngine(
-            createSampleDeck(),
-            createSampleDeck(),
-            playerHeroObj,
-            botHeroObj
-        )
+            gameEngine = ImprovedGameEngine(
+                selectedDeck.cards,
+                createDefaultBotDeck(),
+                playerHero,
+                botHero
+            )
 
-        updateGameState()
-        _gameState.value = "READY"
+            updateGameState()
+        }
     }
     fun getValidTargetsForSelectedCard(): List<Any> {
         val selectedCardIndex = selectedCard.value
@@ -121,7 +107,7 @@ class GameViewModel : ViewModel() {
                     id = index,
                     name = "Minion $index",
                     manaCost = (index % 5) + 1,
-                    imageRes = R.drawable.ic_card_minion_generic,
+                    imageRes = R.drawable.card_icon_dragon,
                     attack = (index % 3) + 1,
                     maxHealth = (index % 4) + 1
                 )
@@ -129,7 +115,7 @@ class GameViewModel : ViewModel() {
                     id = index,
                     name = "Spell $index",
                     manaCost = (index % 3) + 1,
-                    imageRes = R.drawable.ic_card_spell_generic,
+                    imageRes = R.drawable.card_icon_dragon,
                     effect = { engine, targets ->
                         targets.filterIsInstance<MinionCard>().firstOrNull()?.takeDamage(2)
                     }
@@ -197,13 +183,12 @@ class GameViewModel : ViewModel() {
     }
 
     fun endTurn() {
-        if (gameState.value == "READY") {
-            _gameState.value = "BOT_TURN"
+        if (gameEngine.currentTurn == Turn.PLAYER) {
+            gameEngine.endTurn()
+            // Process bot turn
             viewModelScope.launch {
-                delay(1000)
-                gameEngine.endTurn()
+                gameEngine.processBotTurn()
                 updateGameState()
-                _gameState.value = "READY"
             }
         }
     }

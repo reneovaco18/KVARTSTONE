@@ -1,0 +1,76 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <!-- Card Preview -->
+        <include layout="@layout/item_card_hand"/>
+
+        <!-- Card Properties -->
+        <com.google.android.material.textfield.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/cardNameInput"
+                android:hint="Card Name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+        </com.google.android.material.textfield.TextInputLayout>
+
+        <NumberPicker
+            android:id="@+id/manaCostPicker"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <!-- Card Type Selection -->
+        <RadioGroup
+            android:id="@+id/cardTypeGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <RadioButton
+                android:id="@+id/minionType"
+                android:text="Minion"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <RadioButton
+                android:id="@+id/spellType"
+                android:text="Spell"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </RadioGroup>
+
+        <!-- Dynamic Stats (Minions) -->
+        <LinearLayout
+            android:id="@+id/minionStatsGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <NumberPicker
+                android:id="@+id/attackPicker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+            <NumberPicker
+                android:id="@+id/healthPicker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
+
+        <!-- Effect Selection -->
+        <Spinner
+            android:id="@+id/effectSpinner"
+            android:entries="@array/card_effects"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <Button
+            android:id="@+id/saveCardButton"
+            android:text="Save Card"
+            android:layout_marginTop="16dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+</ScrollView>

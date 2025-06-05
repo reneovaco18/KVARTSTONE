@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Divine shield effect overlay -->
+<!-- Mana crystal background -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="oval">
     <gradient
@@ -7,6 +7,9 @@
         android:centerX="0.5"
         android:centerY="0.5"
         android:gradientRadius="100%p"
-        android:startColor="#90FFD700"
-        android:endColor="#00FFD700" />
+        android:startColor="#2196F3"
+        android:endColor="#0D47A1" />
+    <stroke
+        android:width="1dp"
+        android:color="#BBDEFB" />
 </shape>

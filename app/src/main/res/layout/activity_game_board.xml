@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Enhanced Game Play Layout with Hearthstone-like design -->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/game_board_bg">
+
+    <!-- Bot Hero Area with ornate frame -->
+    <LinearLayout
+        android:id="@+id/botHeroArea"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="12dp"
+        android:background="@drawable/main_background"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Bot Hero Portrait -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            app:cardCornerRadius="40dp"
+            app:cardElevation="8dp"
+            android:layout_marginEnd="12dp">
+
+            <ImageView
+                android:id="@+id/botHeroImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_hero_bot"
+                android:scaleType="centerCrop"
+                android:background="@drawable/hero_frame" />
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Bot Health and Info -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/botHeroName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Enemy Hero"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary_light" />
+
+            <TextView
+                android:id="@+id/botHeroHealth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="❤️ 30"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/health_green" />
+
+            <TextView
+                android:id="@+id/botManaDisplay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💎 1/1"
+                android:textSize="14sp"
+                android:textColor="@color/mana_crystal_blue" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Bot Board Area -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/botBoardRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="@drawable/game_board_bg"
+        app:layout_constraintTop_toBottomOf="@id/botHeroArea"
+        android:clipToPadding="false" />
+
+    <!-- Center Game Info -->
+    <LinearLayout
+        android:id="@+id/centerGameInfo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="16dp"
+        android:background="@drawable/center_info_background"
+        app:layout_constraintTop_toBottomOf="@id/botBoardRecyclerView"
+        app:layout_constraintBottom_toTopOf="@id/playerBoardRecyclerView">
+
+        <!-- Turn Indicator -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginEnd="24dp">
+
+            <TextView
+                android:id="@+id/turnNumberText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Turn 1"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_accent" />
+
+            <TextView
+                android:id="@+id/currentPlayerText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your Turn"
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary_light" />
+
+        </LinearLayout>
+
+        <!-- Game Status -->
+        <TextView
+            android:id="@+id/gameStatusText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Game starting..."
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary_light"
+            android:gravity="center"
+            android:background="@drawable/header_background"
+            android:padding="12dp" />
+
+    </LinearLayout>
+
+    <!-- Player Board Area -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/playerBoardRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="@drawable/game_board_bg"
+        app:layout_constraintBottom_toTopOf="@id/playerHeroArea"
+        android:clipToPadding="false" />
+
+    <!-- Player Hero Area -->
+    <LinearLayout
+        android:id="@+id/playerHeroArea"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="12dp"
+        android:background="@drawable/header_background"
+        app:layout_constraintBottom_toTopOf="@id/playerActionsArea">
+
+        <!-- Player Hero Portrait -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            app:cardCornerRadius="40dp"
+            app:cardElevation="8dp"
+            android:layout_marginEnd="12dp">
+
+            <ImageView
+                android:id="@+id/playerHeroImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/ic_hero_player"
+                android:scaleType="centerCrop"
+                android:background="@drawable/hero_frame" />
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Player Info -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/playerHeroName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your Hero"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary_light" />
+
+            <TextView
+                android:id="@+id/playerHeroHealth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="❤️ 30"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/health_green" />
+
+            <TextView
+                android:id="@+id/playerManaText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="💎 1/1"
+                android:textSize="14sp"
+                android:textColor="@color/mana_crystal_blue" />
+
+        </LinearLayout>
+
+        <!-- Hero Power Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/heroPowerButton"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginStart="12dp"
+            app:icon="@drawable/ic_hero_power_player"
+            app:iconSize="32dp"
+            app:iconTint="@color/text_primary_light"
+            app:backgroundTint="@color/primary_purple"
+            app:cornerRadius="32dp"
+            app:strokeColor="@color/secondary_gold"
+            app:strokeWidth="2dp" />
+
+    </LinearLayout>
+
+    <!-- Player Actions Area -->
+    <LinearLayout
+        android:id="@+id/playerActionsArea"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:padding="8dp"
+        android:background="@drawable/actions_area_background"
+        app:layout_constraintBottom_toTopOf="@id/playerHandRecyclerView">
+
+        <!-- Deck Count -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginEnd="16dp">
+
+            <ImageView
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_deck"
+                android:tint="@color/secondary_gold" />
+
+            <TextView
+                android:id="@+id/deckCountText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="30"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary_light" />
+
+        </LinearLayout>
+
+        <!-- End Turn Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/endTurnButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="End Turn"
+            android:textStyle="bold"
+            app:backgroundTint="@color/secondary_green"
+            app:cornerRadius="16dp"
+            app:icon="@drawable/button_end_turn"
+            android:layout_marginStart="16dp" />
+
+    </LinearLayout>
+
+    <!-- Player Hand -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/playerHandRecyclerView"
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:background="@drawable/hand_area_background"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:clipToPadding="false" />
+
+    <!-- Loading Overlay -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/background_overlay"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center">
+
+            <ProgressBar
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:indeterminateTint="@color/secondary_gold" />
+
+            <TextView
+                android:id="@+id/loadingText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Processing turn..."
+                android:textColor="@color/text_primary_light"
+                android:textSize="16sp"
+                android:layout_marginTop="16dp" />
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

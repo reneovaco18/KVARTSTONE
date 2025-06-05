@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- AppCompat theme for legacy views and AppCompatActivity -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar" />
 
-    <style name="Theme.KvartStone" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Material3 theme for Compose (optional, if you use Compose) -->
+    <style name="Theme.KvartStone" parent="Theme.Material3.DayNight.NoActionBar" />
 </resources>

@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/nav_graph"
@@ -6,48 +7,69 @@
     <fragment
         android:id="@+id/splashFragment"
         android:name="com.rench.kvartstone.ui.Splash.SplashFragment"
-        android:label="Splash" />
+        android:label="Splash">
+        <action
+            android:id="@+id/action_splashFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/mainMenuFragment"
         android:name="com.rench.kvartstone.ui.MainMenu.MainMenuFragment"
         android:label="Main Menu">
-
         <action
             android:id="@+id/action_mainMenuFragment_to_gameSetupFragment"
             app:destination="@id/gameSetupFragment" />
-
         <action
-            android:id="@+id/action_mainMenuFragment_to_deckListFragment"
-            app:destination="@id/deckListFragment" />
+            android:id="@+id/action_mainMenuFragment_to_cardManagementFragment"
+            app:destination="@id/cardManagementFragment" />
+        <action
+            android:id="@+id/action_mainMenuFragment_to_heroPowerSelectionFragment"
+            app:destination="@id/heroPowerSelectionFragment" />
     </fragment>
 
-    <action
-        android:id="@+id/action_splashFragment_to_mainMenuFragment"
-        app:destination="@id/mainMenuFragment" />
+    <fragment
+        android:id="@+id/cardManagementFragment"
+        android:name="com.rench.kvartstone.ui.cardmanagement.CardManagementFragment"
+        android:label="Card Collection" />
 
+    <fragment
+        android:id="@+id/heroPowerSelectionFragment"
+        android:name="com.rench.kvartstone.ui.heroselection.HeroPowerSelectionFragment"
+        android:label="Choose Hero Power">
+        <action
+            android:id="@+id/action_heroPowerSelection_to_deckSelection"
+            app:destination="@id/deckSelectionFragment" />
+    </fragment>
     <fragment
         android:id="@+id/gameSetupFragment"
         android:name="com.rench.kvartstone.ui.GameSetup.GameSetupFragment"
         android:label="Game Setup">
-
         <action
             android:id="@+id/action_gameSetupFragment_to_gamePlayFragment"
+            app:destination="@id/gamePlayFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/deckSelectionFragment"
+        android:name="com.rench.kvartstone.ui.deckselection.DeckSelectionFragment"
+        android:label="Choose Deck">
+        <action
+            android:id="@+id/action_deckSelection_to_gamePlay"
             app:destination="@id/gamePlayFragment" />
     </fragment>
 
     <fragment
         android:id="@+id/gamePlayFragment"
         android:name="com.rench.kvartstone.ui.GamePlay.GamePlayFragment"
-        android:label="Game Play">
+        android:label="Game">
         <argument
-            android:name="difficulty"
-            app:argType="string"
-            android:defaultValue="normal" />
+            android:name="selectedHeroPowerId"
+            app:argType="integer"
+            android:defaultValue="1" />
+        <argument
+            android:name="selectedDeckId"
+            app:argType="integer"
+            android:defaultValue="1" />
     </fragment>
 
-    <fragment
-        android:id="@+id/deckListFragment"
-        android:name="com.rench.kvartstone.ui.DeckManager.DeckListFragment"
-        android:label="Deck List" />
 </navigation>

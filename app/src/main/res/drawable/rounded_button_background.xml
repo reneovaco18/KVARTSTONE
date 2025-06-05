@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Rounded button background -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#32FFFFFF">
+    <item>
+        <shape android:shape="rectangle">
+            <corners android:radius="24dp" />
+            <solid android:color="#6A1B9A" />
+        </shape>
+    </item>
+</ripple>
