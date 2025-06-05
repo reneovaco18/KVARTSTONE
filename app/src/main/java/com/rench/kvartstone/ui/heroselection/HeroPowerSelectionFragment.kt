@@ -1,4 +1,3 @@
-// Hero Power Selection Fragment
 package com.rench.kvartstone.ui.heroselection
 
 import android.os.Bundle
@@ -6,10 +5,12 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -75,6 +76,7 @@ class HeroPowerSelectionFragment : Fragment(R.layout.fragment_hero_power_selecti
         }
     }
 }
+
 // Hero Power Selection Adapter
 class HeroPowerSelectionAdapter(
     private val onPowerSelected: (HeroPower) -> Unit
@@ -98,10 +100,12 @@ class HeroPowerSelectionAdapter(
 
         // Notify changes for old and new selections
         oldSelectedId?.let { id ->
-            notifyItemChanged(currentList.indexOfFirst { it.id == id })
+            val oldIndex = currentList.indexOfFirst { it.id == id }
+            if (oldIndex != -1) notifyItemChanged(oldIndex)
         }
         selectedPowerId?.let { id ->
-            notifyItemChanged(currentList.indexOfFirst { it.id == id })
+            val newIndex = currentList.indexOfFirst { it.id == id }
+            if (newIndex != -1) notifyItemChanged(newIndex)
         }
     }
 
@@ -121,7 +125,7 @@ class HeroPowerSelectionAdapter(
             val resourceId = itemView.context.resources.getIdentifier(
                 heroPower.imageResName, "drawable", itemView.context.packageName
             )
-            powerImage.setImageResource(if (resourceId != 0) resourceId else R.drawable.hero_power_fire)
+            powerImage.setImageResource(if (resourceId != 0) resourceId else R.drawable.ic_hero_power_default)
 
             // Show selection state
             val isSelected = selectedPowerId == heroPower.id

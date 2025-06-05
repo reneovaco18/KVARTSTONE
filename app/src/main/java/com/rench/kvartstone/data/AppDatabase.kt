@@ -15,7 +15,7 @@ import com.rench.kvartstone.data.entities.HeroPowerEntity
 
 @Database(
     entities = [CardEntity::class, HeroPowerEntity::class, DeckEntity::class],
-    version = 2,
+    version = 3, // Increment version
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -34,7 +34,8 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "kvartstone_database"
                 )
-                    .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+                    .fallbackToDestructiveMigration() // For development only
                     .build()
                 INSTANCE = instance
                 instance
@@ -70,35 +71,29 @@ abstract class AppDatabase : RoomDatabase() {
                         createdAt INTEGER NOT NULL
                     )
                 """)
+            }
+        }
 
-                // Add new columns to cards table if they don't exist
-                try {
-                    database.execSQL("ALTER TABLE cards ADD COLUMN description TEXT DEFAULT ''")
-                } catch (e: Exception) { /* Column might already exist */ }
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                // Add missing columns to cards table
+                val columnsToAdd = listOf(
+                    "description TEXT DEFAULT ''",
+                    "rarity TEXT DEFAULT 'common'",
+                    "imageUri TEXT DEFAULT NULL",
+                    "keywords TEXT DEFAULT NULL",
+                    "heroClass TEXT DEFAULT 'neutral'",
+                    "isCustom INTEGER DEFAULT 0",
+                    "createdAt INTEGER DEFAULT 0"
+                )
 
-                try {
-                    database.execSQL("ALTER TABLE cards ADD COLUMN rarity TEXT DEFAULT 'common'")
-                } catch (e: Exception) { /* Column might already exist */ }
-
-                try {
-                    database.execSQL("ALTER TABLE cards ADD COLUMN imageUri TEXT DEFAULT NULL")
-                } catch (e: Exception) { /* Column might already exist */ }
-
-                try {
-                    database.execSQL("ALTER TABLE cards ADD COLUMN keywords TEXT DEFAULT NULL")
-                } catch (e: Exception) { /* Column might already exist */ }
-
-                try {
-                    database.execSQL("ALTER TABLE cards ADD COLUMN heroClass TEXT DEFAULT 'neutral'")
-                } catch (e: Exception) { /* Column might already exist */ }
-
-                try {
-                    database.execSQL("ALTER TABLE cards ADD COLUMN isCustom INTEGER DEFAULT 0")
-                } catch (e: Exception) { /* Column might already exist */ }
-
-                try {
-                    database.execSQL("ALTER TABLE cards ADD COLUMN createdAt INTEGER DEFAULT 0")
-                } catch (e: Exception) { /* Column might already exist */ }
+                columnsToAdd.forEach { columnDef ->
+                    try {
+                        database.execSQL("ALTER TABLE cards ADD COLUMN $columnDef")
+                    } catch (e: Exception) {
+                        // Column might already exist, continue
+                    }
+                }
             }
         }
     }

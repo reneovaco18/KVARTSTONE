@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/deckName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Deck Name"
+                android:textSize="18sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:id="@+id/deckDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Deck description"
+                android:textSize="14sp"
+                android:textColor="@android:color/darker_gray"/>
+
+            <TextView
+                android:id="@+id/cardCount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="30 cards"
+                android:textSize="12sp"
+                android:textColor="@android:color/darker_gray"/>
+
+        </LinearLayout>
+
+        <View
+            android:id="@+id/selectionIndicator"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:background="@drawable/selection_indicator"
+            android:layout_marginStart="16dp"
+            android:visibility="gone"/>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

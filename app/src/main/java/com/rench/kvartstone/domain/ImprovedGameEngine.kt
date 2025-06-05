@@ -1,4 +1,3 @@
-// Enhanced Game Engine with improved AI and turn management
 package com.rench.kvartstone.domain
 
 import kotlin.random.Random
@@ -7,30 +6,30 @@ import kotlinx.coroutines.*
 class ImprovedGameEngine(
     playerDeckCards: List<Card>,
     botDeckCards: List<Card>,
-    val playerHero: Hero,
-    val botHero: Hero
-) {
+    override val playerHero: Hero,
+    override val botHero: Hero
+) : GameEngineInterface {
     companion object {
         lateinit var current: ImprovedGameEngine
     }
 
-    var currentTurn = Turn.PLAYER
-    var playerMana = 1
-    var botMana = 1
-    var playerMaxMana = 1
-    var botMaxMana = 1
-    var turnNumber = 1
+    override var currentTurn = Turn.PLAYER
+    override var playerMana = 1
+    override var botMana = 1
+    override var playerMaxMana = 1
+    override var botMaxMana = 1
+    override var turnNumber = 1
     var gamePhase = GamePhase.MULLIGAN
 
-    val playerDeck = playerDeckCards.toMutableList().shuffled().toMutableList()
-    val botDeck = botDeckCards.toMutableList().shuffled().toMutableList()
-    val playerHand = mutableListOf<Card>()
-    val botHand = mutableListOf<Card>()
-    val playerBoard = mutableListOf<MinionCard>()
-    val botBoard = mutableListOf<MinionCard>()
+    override val playerDeck = playerDeckCards.toMutableList().shuffled().toMutableList()
+    override val botDeck = botDeckCards.toMutableList().shuffled().toMutableList()
+    override val playerHand = mutableListOf<Card>()
+    override val botHand = mutableListOf<Card>()
+    override val playerBoard = mutableListOf<MinionCard>()
+    override val botBoard = mutableListOf<MinionCard>()
 
-    var gameOver = false
-    var playerWon = false
+    override var gameOver = false
+    override var playerWon = false
     var isProcessingTurn = false
 
     // Effect queues for proper sequencing
@@ -56,7 +55,7 @@ class ImprovedGameEngine(
         gamePhase = GamePhase.MAIN_GAME
     }
 
-    fun drawCardForPlayer(): Card? {
+    override fun drawCardForPlayer(): Card? {
         if (playerDeck.isEmpty()) {
             // Fatigue damage
             playerHero.takeDamage(playerHand.size + 1)
@@ -70,7 +69,7 @@ class ImprovedGameEngine(
         return card
     }
 
-    fun drawCardForBot(): Card? {
+    override fun drawCardForBot(): Card? {
         if (botDeck.isEmpty()) {
             // Fatigue damage
             botHero.takeDamage(botHand.size + 1)
@@ -84,7 +83,7 @@ class ImprovedGameEngine(
         return card
     }
 
-    fun playCardFromHand(cardIndex: Int, target: Any? = null): Boolean {
+    override fun playCardFromHand(cardIndex: Int, target: Any?): Boolean {
         if (currentTurn != Turn.PLAYER || cardIndex >= playerHand.size || isProcessingTurn) return false
 
         val card = playerHand[cardIndex]
@@ -108,6 +107,11 @@ class ImprovedGameEngine(
         cleanupBoard()
         checkGameEnd()
         return true
+    }
+
+    // Add the missing attack method that implements the interface
+    override fun attack(attacker: MinionCard, target: Any): Boolean {
+        return performAttack(attacker, target)
     }
 
     private fun playMinion(minion: MinionCard, board: MutableList<MinionCard>) {
@@ -149,25 +153,108 @@ class ImprovedGameEngine(
         }
     }
 
-    fun playerMinionAttack(attackerIndex: Int, targetType: String, targetIndex: Int = -1): Boolean {
-        if (currentTurn != Turn.PLAYER || attackerIndex >= playerBoard.size || isProcessingTurn) return false
+    // Enhanced AI Turn Processing
+    suspend fun processBotTurn() {
+        if (currentTurn != Turn.BOT || isProcessingTurn) return
 
-        val attacker = playerBoard[attackerIndex]
-        if (!attacker.canAttack()) return false
+        isProcessingTurn = true
+        delay(500) // Visual delay for player
 
-        val target = when (targetType) {
-            "hero" -> botHero
-            "minion" -> {
-                if (targetIndex >= 0 && targetIndex < botBoard.size) {
-                    botBoard[targetIndex]
-                } else null
+        try {
+            val aiDecisions = aiEvaluator.planTurn(botHand, botBoard, playerBoard, botMana)
+
+            // Execute AI decisions in order
+            for (decision in aiDecisions) {
+                when (decision) {
+                    is AIDecision.PlayCard -> {
+                        if (botPlayCard(decision.cardIndex, decision.target)) {
+                            delay(300) // Animation time
+                        }
+                    }
+                    is AIDecision.Attack -> {
+                        if (botAttack(decision.attackerIndex, decision.target)) {
+                            delay(300)
+                        }
+                    }
+                    is AIDecision.UseHeroPower -> {
+                        if (botUseHeroPower(decision.target)) {
+                            delay(300)
+                        }
+                    }
+                    is AIDecision.EndTurn -> {
+                        // End turn will be handled automatically
+                    }
+                }
             }
-            else -> null
+
+            // Use remaining mana efficiently
+            while (aiEvaluator.canPlayMoreCards(botHand, botMana)) {
+                val bestCard = aiEvaluator.findBestPlayableCard(botHand, botMana)
+                if (bestCard != null && botPlayCard(bestCard, null)) {
+                    delay(300)
+                } else {
+                    break
+                }
+            }
+
+            // Attack with available minions
+            val availableAttackers = botBoard.filter { it.canAttack() }
+            for (attacker in availableAttackers) {
+                val bestTarget = aiEvaluator.findBestAttackTarget(attacker, playerBoard, playerHero)
+                if (bestTarget != null) {
+                    val attackerIndex = botBoard.indexOf(attacker)
+                    performAttack(attacker, bestTarget)
+                    delay(300)
+                }
+            }
+
+        } finally {
+            isProcessingTurn = false
+            endTurn()
+        }
+    }
+
+    private fun botPlayCard(cardIndex: Int, target: Any?): Boolean {
+        if (cardIndex >= botHand.size) return false
+
+        val card = botHand[cardIndex]
+        if (card.manaCost > botMana) return false
+
+        botMana -= card.manaCost
+        botHand.removeAt(cardIndex)
+
+        when (card) {
+            is MinionCard -> {
+                if (botBoard.size < 7) {
+                    playMinion(card, botBoard)
+                    return true
+                }
+            }
+            is SpellCard -> {
+                val spellTarget = target ?: aiEvaluator.findBestSpellTarget(card, playerBoard, playerHero)
+                castSpell(card, spellTarget)
+                return true
+            }
         }
 
-        return if (target != null) {
-            performAttack(attacker, target)
-        } else false
+        processEffectQueues()
+        cleanupBoard()
+        return false
+    }
+
+    private fun botAttack(attackerIndex: Int, target: Any): Boolean {
+        if (attackerIndex >= botBoard.size) return false
+        val attacker = botBoard[attackerIndex]
+        return performAttack(attacker, target)
+    }
+
+    private fun botUseHeroPower(target: Any?): Boolean {
+        if (botHero.heroPower.canUse(botMana)) {
+            botHero.heroPower.use(this, target)
+            botMana -= botHero.heroPower.cost
+            return true
+        }
+        return false
     }
 
     private fun performAttack(attacker: MinionCard, target: Any): Boolean {
@@ -217,107 +304,6 @@ class ImprovedGameEngine(
         }
     }
 
-    // Enhanced AI Turn Processing
-    suspend fun processBotTurn() {
-        if (currentTurn != Turn.BOT || isProcessingTurn) return
-
-        isProcessingTurn = true
-        delay(500) // Visual delay for player
-
-        try {
-            val aiDecisions = aiEvaluator.planTurn(botHand, botBoard, playerBoard, botMana)
-
-            // Execute AI decisions in order
-            for (decision in aiDecisions) {
-                when (decision) {
-                    is AIDecision.PlayCard -> {
-                        if (botPlayCard(decision.cardIndex, decision.target)) {
-                            delay(300) // Animation time
-                        }
-                    }
-                    is AIDecision.Attack -> {
-                        if (botAttack(decision.attackerIndex, decision.target)) {
-                            delay(300)
-                        }
-                    }
-                    is AIDecision.UseHeroPower -> {
-                        if (botUseHeroPower(decision.target)) {
-                            delay(300)
-                        }
-                    }
-                }
-            }
-
-            // Use remaining mana efficiently
-            while (aiEvaluator.canPlayMoreCards(botHand, botMana)) {
-                val bestCard = aiEvaluator.findBestPlayableCard(botHand, botMana)
-                if (bestCard != null && botPlayCard(bestCard, null)) {
-                    delay(300)
-                } else {
-                    break
-                }
-            }
-
-            // Attack with available minions
-            val availableAttackers = botBoard.filter { it.canAttack() }
-            for (attacker in availableAttackers) {
-                val bestTarget = aiEvaluator.findBestAttackTarget(attacker, playerBoard, playerHero)
-                if (bestTarget != null) {
-                    val attackerIndex = botBoard.indexOf(attacker)
-                    performAttack(attacker, bestTarget)
-                    delay(300)
-                }
-            }
-
-        } finally {
-            isProcessingTurn = false
-            endTurn()
-        }
-    }
-
-    private fun botPlayCard(cardIndex: Int?, target: Any?): Boolean {
-        if (cardIndex == null || cardIndex >= botHand.size) return false
-
-        val card = botHand[cardIndex]
-        if (card.manaCost > botMana) return false
-
-        botMana -= card.manaCost
-        botHand.removeAt(cardIndex)
-
-        when (card) {
-            is MinionCard -> {
-                if (botBoard.size < 7) {
-                    playMinion(card, botBoard)
-                    return true
-                }
-            }
-            is SpellCard -> {
-                val spellTarget = target ?: aiEvaluator.findBestSpellTarget(card, playerBoard, playerHero)
-                castSpell(card, spellTarget)
-                return true
-            }
-        }
-
-        processEffectQueues()
-        cleanupBoard()
-        return false
-    }
-
-    private fun botAttack(attackerIndex: Int, target: Any): Boolean {
-        if (attackerIndex >= botBoard.size) return false
-        val attacker = botBoard[attackerIndex]
-        return performAttack(attacker, target)
-    }
-
-    private fun botUseHeroPower(target: Any?): Boolean {
-        if (botHero.heroPower.canUse(botMana)) {
-            botHero.heroPower.use(this, target)
-            botMana -= botHero.heroPower.cost
-            return true
-        }
-        return false
-    }
-
     private fun processEffectQueues() {
         // Process battlecries first
         while (battlecryQueue.isNotEmpty()) {
@@ -345,7 +331,7 @@ class ImprovedGameEngine(
         processEffectQueues()
     }
 
-    fun endTurn() {
+    override fun endTurn() {
         // Process end of turn effects
         while (endTurnEffects.isNotEmpty()) {
             val effect = endTurnEffects.removeAt(0)
@@ -357,8 +343,6 @@ class ImprovedGameEngine(
                 currentTurn = Turn.BOT
                 botBoard.forEach { it.resetForNewTurn() }
                 playerHero.resetHeroPower()
-
-                // Bot turn will be handled by UI calling processBotTurn()
             }
             Turn.BOT -> {
                 currentTurn = Turn.PLAYER
@@ -383,7 +367,7 @@ class ImprovedGameEngine(
         checkGameEnd()
     }
 
-    fun useHeroPower(target: Any? = null): Boolean {
+    override fun useHeroPower(target: Any?): Boolean {
         if (currentTurn != Turn.PLAYER || !playerHero.heroPower.canUse(playerMana)) return false
 
         playerHero.heroPower.use(this, target)
@@ -417,183 +401,5 @@ class ImprovedGameEngine(
             gamePhase = gamePhase,
             isProcessingTurn = isProcessingTurn
         )
-    }
-}
-
-// Game phases for better state management
-enum class GamePhase {
-    MULLIGAN,
-    MAIN_GAME,
-    GAME_OVER
-}
-
-// Game state data class for UI
-data class GameState(
-    val currentTurn: Turn,
-    val turnNumber: Int,
-    val playerMana: Int,
-    val playerMaxMana: Int,
-    val gameOver: Boolean,
-    val playerWon: Boolean,
-    val gamePhase: GamePhase,
-    val isProcessingTurn: Boolean
-)
-
-// AI Decision classes
-sealed class AIDecision {
-    data class PlayCard(val cardIndex: Int, val target: Any?) : AIDecision()
-    data class Attack(val attackerIndex: Int, val target: Any) : AIDecision()
-    data class UseHeroPower(val target: Any?) : AIDecision()
-}
-
-// Enhanced AI Evaluator
-class AIEvaluator(private val gameEngine: ImprovedGameEngine) {
-
-    fun planTurn(hand: List<Card>, friendlyBoard: List<MinionCard>, enemyBoard: List<MinionCard>, mana: Int): List<AIDecision> {
-        val decisions = mutableListOf<AIDecision>()
-        var remainingMana = mana
-        val availableCards = hand.toMutableList()
-
-        // Phase 1: Play efficient cards
-        while (remainingMana > 0 && availableCards.isNotEmpty()) {
-            val bestCard = findBestCard(availableCards, remainingMana, enemyBoard)
-            if (bestCard != null) {
-                val cardIndex = hand.indexOf(bestCard)
-                val target = if (bestCard is SpellCard) {
-                    findBestSpellTarget(bestCard, enemyBoard, gameEngine.playerHero)
-                } else null
-
-                decisions.add(AIDecision.PlayCard(cardIndex, target))
-                remainingMana -= bestCard.manaCost
-                availableCards.remove(bestCard)
-            } else {
-                break
-            }
-        }
-
-        return decisions
-    }
-
-    private fun findBestCard(cards: List<Card>, mana: Int, enemyBoard: List<MinionCard>): Card? {
-        val playableCards = cards.filter { it.manaCost <= mana }
-        if (playableCards.isEmpty()) return null
-
-        // Prioritize based on game state
-        return when {
-            enemyBoard.size > 2 -> {
-                // Prioritize removal spells
-                playableCards.filterIsInstance<SpellCard>()
-                    .filter { it.targetingType == TargetingType.ALL_ENEMY_MINIONS }
-                    .maxByOrNull { evaluateCard(it) }
-                    ?: playableCards.maxByOrNull { evaluateCard(it) }
-            }
-            else -> {
-                // Prioritize efficient minions
-                playableCards.maxByOrNull { evaluateCard(it) }
-            }
-        }
-    }
-
-    private fun evaluateCard(card: Card): Double {
-        return when (card) {
-            is MinionCard -> {
-                val statValue = (card.attack + card.maxHealth) / card.manaCost.toDouble()
-                val efficiency = if (card.manaCost == 0) 10.0 else statValue
-
-                // Bonus for keywords
-                val keywordBonus = when {
-                    card.hasDivineShield -> 1.5
-                    card.battlecryEffect != null -> 1.2
-                    card.deathrattleEffect != null -> 1.1
-                    else -> 1.0
-                }
-
-                efficiency * keywordBonus
-            }
-            is SpellCard -> {
-                // Higher value for removal spells
-                when (card.targetingType) {
-                    TargetingType.ALL_ENEMY_MINIONS -> 8.0
-                    TargetingType.SINGLE_CHARACTER -> 6.0
-                    TargetingType.RANDOM_ENEMY -> 5.0
-                    else -> 4.0
-                }
-            }
-            else -> 1.0
-        }
-    }
-
-    fun findBestAttackTarget(attacker: MinionCard, enemyBoard: List<MinionCard>, enemyHero: Hero): Any? {
-        if (!attacker.canAttack()) return null
-
-        // Check for taunt minions first
-        val tauntMinions = enemyBoard.filter { it.keywords?.contains("taunt") == true }
-        if (tauntMinions.isNotEmpty()) {
-            return findOptimalTradeTarget(attacker, tauntMinions) ?: tauntMinions.first()
-        }
-
-        // If no taunts, consider all targets
-        val allTargets = enemyBoard + listOf(enemyHero)
-        return findBestTarget(attacker, allTargets, enemyHero)
-    }
-
-    private fun findOptimalTradeTarget(attacker: MinionCard, targets: List<MinionCard>): MinionCard? {
-        return targets.filter { target ->
-            // Can kill target without dying
-            target.currentHealth <= attacker.attack &&
-                    (attacker.currentHealth > target.attack || attacker.hasDivineShield)
-        }.maxByOrNull { it.attack + it.currentHealth } // Prioritize valuable targets
-    }
-
-    private fun findBestTarget(attacker: MinionCard, allTargets: List<Any>, enemyHero: Hero): Any {
-        val minions = allTargets.filterIsInstance<MinionCard>()
-
-        // Prioritize killing enemy minions
-        val killableMinions = minions.filter { it.currentHealth <= attacker.attack }
-        if (killableMinions.isNotEmpty()) {
-            return killableMinions.maxByOrNull { it.attack + it.currentHealth } ?: killableMinions.first()
-        }
-
-        // If can't kill any minions, consider going face if it's lethal
-        if (enemyHero.currentHealth <= attacker.attack) {
-            return enemyHero
-        }
-
-        // Otherwise, make efficient trades
-        val efficientTrades = minions.filter { target ->
-            val damageRatio = attacker.attack.toDouble() / target.currentHealth
-            damageRatio >= 0.5 // Only attack if dealing significant damage
-        }
-
-        return efficientTrades.maxByOrNull { it.attack + it.currentHealth } ?: enemyHero
-    }
-
-    fun findBestSpellTarget(spell: SpellCard, enemyBoard: List<MinionCard>, enemyHero: Hero): Any? {
-        return when (spell.targetingType) {
-            TargetingType.SINGLE_CHARACTER -> {
-                // Prioritize biggest threat or lethal on hero
-                if (enemyHero.currentHealth <= 6 && spell.description.contains("damage", true)) {
-                    enemyHero
-                } else {
-                    enemyBoard.maxByOrNull { it.attack + it.currentHealth }
-                }
-            }
-            TargetingType.SINGLE_ENEMY_MINION -> {
-                enemyBoard.maxByOrNull { it.attack + it.currentHealth }
-            }
-            else -> null
-        }
-    }
-
-    fun canPlayMoreCards(hand: List<Card>, mana: Int): Boolean {
-        return hand.any { it.manaCost <= mana }
-    }
-
-    fun findBestPlayableCard(hand: List<Card>, mana: Int): Int? {
-        val playableCards = hand.mapIndexedNotNull { index, card ->
-            if (card.manaCost <= mana) index to card else null
-        }
-
-        return playableCards.maxByOrNull { (_, card) -> evaluateCard(card) }?.first
     }
 }

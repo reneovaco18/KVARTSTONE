@@ -2,41 +2,40 @@ package com.rench.kvartstone.domain
 
 import kotlin.random.Random
 
-class GameEngine(
+open class GameEngine(
     playerDeckCards: List<Card>,
     botDeckCards: List<Card>,
-    val playerHero: Hero,
-    val botHero: Hero
-) {
+    override val playerHero: Hero,
+    override val botHero: Hero
+) : GameEngineInterface {
     companion object {
-        lateinit var current: GameEngine
+        lateinit var current: GameEngineInterface
     }
 
-    var currentTurn = Turn.PLAYER
-    var playerMana = 1
-    var botMana = 1
-    var playerMaxMana = 1
-    var botMaxMana = 1
-    var turnNumber = 1
+    override var currentTurn = Turn.PLAYER
+    override var playerMana = 1
+    override var botMana = 1
+    override var playerMaxMana = 1
+    override var botMaxMana = 1
+    override var turnNumber = 1
 
-    val playerDeck = playerDeckCards.toMutableList().shuffled().toMutableList()
-    val botDeck = botDeckCards.toMutableList().shuffled().toMutableList()
-    val playerHand = mutableListOf<Card>()
-    val botHand = mutableListOf<Card>()
-    val playerBoard = mutableListOf<MinionCard>()
-    val botBoard = mutableListOf<MinionCard>()
+    override val playerDeck = playerDeckCards.toMutableList().shuffled().toMutableList()
+    override val botDeck = botDeckCards.toMutableList().shuffled().toMutableList()
+    override val playerHand = mutableListOf<Card>()
+    override val botHand = mutableListOf<Card>()
+    override val playerBoard = mutableListOf<MinionCard>()
+    override val botBoard = mutableListOf<MinionCard>()
 
-    var gameOver = false
-    var playerWon = false
+    override var gameOver = false
+    override var playerWon = false
 
     init {
         current = this
-        // Initial draw
         repeat(3) { drawCardForPlayer() }
         repeat(4) { drawCardForBot() }
     }
 
-    fun drawCardForPlayer(): Card? {
+    override fun drawCardForPlayer(): Card? {
         if (playerDeck.isEmpty()) return null
 
         val card = playerDeck.removeAt(0)
@@ -46,7 +45,7 @@ class GameEngine(
         return card
     }
 
-    fun drawCardForBot(): Card? {
+    override fun drawCardForBot(): Card? {
         if (botDeck.isEmpty()) return null
 
         val card = botDeck.removeAt(0)
@@ -56,7 +55,7 @@ class GameEngine(
         return card
     }
 
-    fun playCardFromHand(cardIndex: Int, target: Any? = null): Boolean {
+    override fun playCardFromHand(cardIndex: Int, target: Any?): Boolean {
         if (currentTurn != Turn.PLAYER || cardIndex >= playerHand.size) return false
 
         val card = playerHand[cardIndex]
@@ -109,7 +108,8 @@ class GameEngine(
         } else false
     }
 
-    fun attack(attacker: MinionCard, target: Any): Boolean {
+    // Add override modifier to the attack method
+    override fun attack(attacker: MinionCard, target: Any): Boolean {
         if (!attacker.canAttack()) return false
 
         when (target) {
@@ -185,7 +185,7 @@ class GameEngine(
         botBoard.removeAll { it.isDead() }
     }
 
-    fun endTurn() {
+    override fun endTurn() {
         when (currentTurn) {
             Turn.PLAYER -> {
                 currentTurn = Turn.BOT
@@ -197,11 +197,11 @@ class GameEngine(
                 currentTurn = Turn.PLAYER
                 turnNumber++
 
-                // Increase mana
+                // Increase mana correctly
                 playerMaxMana = minOf(playerMaxMana + 1, 10)
                 botMaxMana = minOf(botMaxMana + 1, 10)
-                playerMana = playerMaxMana
-                botMana = botMaxMana
+                playerMana = playerMaxMana // Refill to max
+                botMana = botMaxMana // Refill to max
 
                 // Draw cards
                 drawCardForPlayer()
@@ -236,11 +236,12 @@ class GameEngine(
         playerWon = playerWins
     }
 
-    fun useHeroPower(target: Any? = null): Boolean {
+    override fun useHeroPower(target: Any?): Boolean {
         if (currentTurn != Turn.PLAYER) return false
 
         if (playerHero.heroPower.canUse(playerMana)) {
             playerHero.heroPower.use(this, target)
+            playerMana -= playerHero.heroPower.cost
             return true
         }
         return false

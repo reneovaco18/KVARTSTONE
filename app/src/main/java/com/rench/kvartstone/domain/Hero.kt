@@ -8,8 +8,7 @@ data class Hero(
     val heroPowerImageRes: Int,
     var currentHealth: Int = maxHealth,
     var armor: Int = 0
-)
- {
+) {
     fun takeDamage(amount: Int) {
         val actualDamage = if (armor >= amount) {
             armor -= amount

@@ -47,8 +47,11 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
         observeViewModel()
         setupClickListeners()
 
-        // Initialize game with selected difficulty
-        viewModel.initializeGame(args.difficulty)
+        // Initialize game with proper parameters
+        val heroPowerId = args.heroPowerId ?: 1 // Default to 1 if not provided
+        val deckId = args.deckId ?: 1 // Default to 1 if not provided
+
+        viewModel.initializeGame(heroPowerId, deckId)
     }
 
     private fun initializeViews(view: View) {
@@ -121,6 +124,8 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
 
         viewModel.playerHero.observe(viewLifecycleOwner) { hero ->
             updateHeroDisplay(hero, playerHeroHealth, true)
+            // Update hero power button when hero changes
+            updateHeroPowerButton()
         }
 
         viewModel.botHero.observe(viewLifecycleOwner) { hero ->
@@ -137,6 +142,15 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
         viewModel.playerMana.observe(viewLifecycleOwner) { mana ->
             val maxMana = viewModel.playerMaxMana.value ?: 1
             playerManaText.text = "Mana: $mana/$maxMana"
+            // Update hero power button when mana changes
+            updateHeroPowerButton()
+        }
+
+        viewModel.playerMaxMana.observe(viewLifecycleOwner) { maxMana ->
+            val currentMana = viewModel.playerMana.value ?: 0
+            playerManaText.text = "Mana: $currentMana/$maxMana"
+            // Update hero power button when max mana changes
+            updateHeroPowerButton()
         }
 
         viewModel.turnNumber.observe(viewLifecycleOwner) { turn ->
@@ -171,6 +185,14 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
         }
     }
 
+    private fun updateHeroPowerButton() {
+        val canUse = viewModel.canUseHeroPower()
+        val gameReady = viewModel.gameState.value == "READY"
+
+        heroPowerButton.isEnabled = canUse && gameReady
+        heroPowerButton.alpha = if (heroPowerButton.isEnabled) 1.0f else 0.5f
+    }
+
     private fun setupClickListeners() {
         endTurnButton.setOnClickListener {
             viewModel.endTurn()
@@ -179,8 +201,8 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
 
         heroPowerButton.setOnClickListener {
             if (viewModel.canUseHeroPower()) {
-                // Simple hero power usage (can be enhanced for targeting)
                 viewModel.useHeroPower()
+                updateHeroPowerButton() // Update button state immediately
             } else {
                 showMessage("Cannot use hero power!")
             }
@@ -312,7 +334,7 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
             "READY" -> {
                 gameStatusText.text = getStateMessage(state)
                 endTurnButton.isEnabled = true
-                heroPowerButton.isEnabled = viewModel.canUseHeroPower()
+                updateHeroPowerButton()
             }
             "BOT_TURN" -> {
                 gameStatusText.text = "Bot's turn..."

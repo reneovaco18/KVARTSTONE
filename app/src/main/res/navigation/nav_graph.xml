@@ -52,24 +52,38 @@
     <fragment
         android:id="@+id/deckSelectionFragment"
         android:name="com.rench.kvartstone.ui.deckselection.DeckSelectionFragment"
-        android:label="Choose Deck">
-        <action
-            android:id="@+id/action_deckSelection_to_gamePlay"
-            app:destination="@id/gamePlayFragment" />
-    </fragment>
+        android:label="DeckSelectionFragment">
 
-    <fragment
-        android:id="@+id/gamePlayFragment"
-        android:name="com.rench.kvartstone.ui.GamePlay.GamePlayFragment"
-        android:label="Game">
         <argument
             android:name="selectedHeroPowerId"
             app:argType="integer"
             android:defaultValue="1" />
+
+        <action
+            android:id="@+id/action_deckSelection_to_gamePlayFragment"
+            app:destination="@id/gamePlayFragment" />
+
+    </fragment>
+
+
+
+    <fragment
+        android:id="@+id/gamePlayFragment"
+        android:name="com.rench.kvartstone.ui.GamePlay.GamePlayFragment"
+        android:label="GamePlayFragment">
         <argument
-            android:name="selectedDeckId"
+            android:name="heroPowerId"
             app:argType="integer"
             android:defaultValue="1" />
+        <argument
+            android:name="deckId"
+            app:argType="integer"
+            android:defaultValue="1" />
+        <argument
+            android:name="difficulty"
+            app:argType="integer"
+            android:defaultValue="2" />
     </fragment>
+
 
 </navigation>

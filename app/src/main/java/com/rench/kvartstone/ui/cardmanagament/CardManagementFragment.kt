@@ -54,7 +54,13 @@ class CardManagementFragment : Fragment(R.layout.fragment_card_management) {
         searchView = view.findViewById(R.id.searchView)
         filterSpinner = view.findViewById(R.id.filterSpinner)
         fabAddCard = view.findViewById(R.id.fabAddCard)
+
+        // Add back button
+        view.findViewById<ImageButton>(R.id.backButton).setOnClickListener {
+            findNavController().navigateUp()
+        }
     }
+
 
     private fun setupRecyclerView() {
         cardAdapter = CardManagementAdapter(
@@ -74,15 +80,33 @@ class CardManagementFragment : Fragment(R.layout.fragment_card_management) {
         // Setup search functionality
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                query?.let { viewModel.searchCards(it) }
+                query?.let {
+                    if (it.isEmpty()) {
+                        viewModel.showAllCards()
+                    } else {
+                        viewModel.searchCards(it)
+                    }
+                }
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                newText?.let { viewModel.searchCards(it) }
+                newText?.let {
+                    if (it.isEmpty()) {
+                        viewModel.showAllCards()
+                    } else {
+                        viewModel.searchCards(it)
+                    }
+                }
                 return true
             }
         })
+
+        // Add close listener for search view
+        searchView.setOnCloseListener {
+            viewModel.showAllCards()
+            false
+        }
 
         // Setup filter spinner
         val filterOptions = arrayOf("All Cards", "Minions", "Spells", "Custom Cards", "By Rarity")
@@ -101,9 +125,12 @@ class CardManagementFragment : Fragment(R.layout.fragment_card_management) {
                 }
             }
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onNothingSelected(parent: AdapterView<*>?) {
+                viewModel.showAllCards()
+            }
         }
     }
+
 
     private fun observeViewModel() {
         viewModel.cards.observe(viewLifecycleOwner) { cards ->
@@ -190,85 +217,5 @@ class CardManagementFragment : Fragment(R.layout.fragment_card_management) {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
         intent.type = "image/*"
         imagePickerLauncher.launch(intent)
-    }
-}
-
-// Card Management Adapter
-class CardManagementAdapter(
-    private val onCardClick: (CardEntity) -> Unit,
-    private val onCardLongClick: (CardEntity) -> Unit,
-    private val onDeleteClick: (CardEntity) -> Unit
-) : ListAdapter<CardEntity, CardManagementAdapter.CardViewHolder>(CardDiffCallback()) {
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
-        val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_card_management, parent, false)
-        return CardViewHolder(view)
-    }
-
-    override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
-        holder.bind(getItem(position))
-    }
-
-    inner class CardViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val cardImage: ImageView = itemView.findViewById(R.id.cardImage)
-        private val cardName: TextView = itemView.findViewById(R.id.cardName)
-        private val cardType: TextView = itemView.findViewById(R.id.cardType)
-        private val cardCost: TextView = itemView.findViewById(R.id.cardCost)
-        private val cardRarity: TextView = itemView.findViewById(R.id.cardRarity)
-        private val deleteButton: ImageButton = itemView.findViewById(R.id.deleteButton)
-        private val customIndicator: View = itemView.findViewById(R.id.customIndicator)
-
-        fun bind(card: CardEntity) {
-            cardName.text = card.name
-            cardType.text = card.type.replaceFirstChar { it.uppercase() }
-            cardCost.text = card.manaCost.toString()
-            cardRarity.text = card.rarity.replaceFirstChar { it.uppercase() }
-
-            // Set rarity color
-            val rarityColor = when (card.rarity.lowercase()) {
-                "legendary" -> R.color.card_legendary_orange
-                "epic" -> R.color.card_epic_purple
-                "rare" -> R.color.card_rare_blue
-                else -> R.color.card_common_gray
-            }
-            cardRarity.setTextColor(itemView.context.getColor(rarityColor))
-
-            // Show custom indicator
-            customIndicator.visibility = if (card.isCustom) View.VISIBLE else View.GONE
-
-            // Load card image
-            if (card.imageUri != null) {
-                // Load from URI (user-added image)
-                Glide.with(itemView.context)
-                    .load(card.imageUri)
-                    .placeholder(R.drawable.card_icon_dragon)
-                    .into(cardImage)
-            } else {
-                // Load from resources
-                val resourceId = itemView.context.resources.getIdentifier(
-                    card.imageResName, "drawable", itemView.context.packageName
-                )
-                cardImage.setImageResource(if (resourceId != 0) resourceId else R.drawable.card_icon_dragon)
-            }
-
-            // Set click listeners
-            itemView.setOnClickListener { onCardClick(card) }
-            itemView.setOnLongClickListener {
-                onCardLongClick(card)
-                true
-            }
-            deleteButton.setOnClickListener { onDeleteClick(card) }
-        }
-    }
-
-    class CardDiffCallback : DiffUtil.ItemCallback<CardEntity>() {
-        override fun areItemsTheSame(oldItem: CardEntity, newItem: CardEntity): Boolean {
-            return oldItem.id == newItem.id
-        }
-
-        override fun areContentsTheSame(oldItem: CardEntity, newItem: CardEntity): Boolean {
-            return oldItem == newItem
-        }
     }
 }

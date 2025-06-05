@@ -3,123 +3,190 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="#2E7D32">
 
-    <!-- Bot Hero Area -->
+    <!-- Top Status Bar with Bot Hero -->
     <LinearLayout
-        android:id="@+id/botHeroArea"
-        android:layout_width="match_parent"
+        android:id="@+id/topStatusBar"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:gravity="center"
         android:orientation="horizontal"
         android:padding="8dp"
-        app:layout_constraintTop_toTopOf="parent">
+        android:background="#1B5E20"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <ImageView
-            android:id="@+id/botHeroImage"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:src="@drawable/ic_hero_bot"
-            android:background="@drawable/hero_frame"/>
-
+        <!-- Game Status (Left Side) -->
         <TextView
-            android:id="@+id/botHeroHealth"
+            android:id="@+id/gameStatusText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Your turn - Turn 1"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:gravity="start|center_vertical"/>
+
+        <!-- Bot Hero (Center) -->
+        <LinearLayout
+            android:id="@+id/botHeroArea"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Health: 20/20"
-            android:layout_marginStart="8dp"/>
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="4dp">
+
+            <ImageView
+                android:id="@+id/botHeroImage"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@drawable/ic_hero_bot"
+                android:background="@drawable/hero_frame"/>
+
+            <TextView
+                android:id="@+id/botHeroHealth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Health: 30/30"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:layout_marginStart="8dp"/>
+
+        </LinearLayout>
+
+        <!-- Turn Number (Right Side) -->
+        <TextView
+            android:id="@+id/turnNumberText"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Turn: 1"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:gravity="end|center_vertical"/>
+
     </LinearLayout>
 
     <!-- Bot Board -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/botBoardRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="110dp"
+        android:layout_width="0dp"
+        android:layout_height="80dp"
         android:orientation="horizontal"
-        app:layout_constraintTop_toBottomOf="@id/botHeroArea"/>
-
-    <!-- Game Status -->
-    <TextView
-        android:id="@+id/gameStatusText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Game starting..."
-        android:textSize="18sp"
-        android:textStyle="bold"
+        android:padding="4dp"
+        app:layout_constraintTop_toBottomOf="@id/topStatusBar"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/botBoardRecyclerView"
-        app:layout_constraintBottom_toTopOf="@id/playerBoardRecyclerView"/>
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <!-- Player Board -->
-
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/playerBoardRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="110dp"
+        android:layout_width="0dp"
+        android:layout_height="80dp"
         android:orientation="horizontal"
-        app:layout_constraintBottom_toTopOf="@id/playerHeroArea"/>
+        android:padding="4dp"
+        app:layout_constraintBottom_toTopOf="@id/controlsArea"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- Player Hero Area -->
+    <!-- Controls Area with Player Hero -->
     <LinearLayout
-        android:id="@+id/playerHeroArea"
-        android:layout_width="match_parent"
+        android:id="@+id/controlsArea"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:gravity="center"
+        android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="8dp"
-        app:layout_constraintBottom_toTopOf="@id/playerHandRecyclerView">
+        android:background="#4CAF50"
+        app:layout_constraintBottom_toTopOf="@id/playerHandRecyclerView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
 
-        <ImageView
-            android:id="@+id/playerHeroImage"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:src="@drawable/ic_hero_player"
-            android:background="@drawable/hero_frame"/>
-        <Button
-            android:id="@+id/heroPowerButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Hero Power"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
-            android:layout_gravity="center_horizontal"/>
-        <TextView
-            android:id="@+id/playerHeroHealth"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Health: 20/20"
-            android:layout_marginStart="8dp"/>
-
+        <!-- Mana (Left Side) -->
         <TextView
             android:id="@+id/playerManaText"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Mana: 1"
-            android:layout_marginStart="16dp"/>
-        <TextView
-            android:id="@+id/turnNumberText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Turn: 1"
-            android:textSize="16sp"
+            android:layout_weight="1"
+            android:text="Mana: 1/1"
+            android:textColor="@android:color/white"
             android:textStyle="bold"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="8dp"/>
-        <Button
-            android:id="@+id/endTurnButton"
+            android:gravity="start|center_vertical"/>
+
+        <!-- Player Hero (Center) -->
+        <LinearLayout
+            android:id="@+id/playerHeroArea"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="End Turn"
-            android:layout_marginStart="16dp"/>
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="4dp">
+
+            <ImageView
+                android:id="@+id/playerHeroImage"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@drawable/ic_hero_player"
+                android:background="@drawable/hero_frame"/>
+
+            <TextView
+                android:id="@+id/playerHeroHealth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Health: 30/30"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                android:textSize="12sp"
+                android:layout_marginStart="8dp"/>
+
+        </LinearLayout>
+
+        <!-- Buttons (Right Side) -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="horizontal"
+            android:gravity="end|center_vertical">
+
+            <Button
+                android:id="@+id/heroPowerButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Hero Power"
+                android:textSize="11sp"
+                android:layout_marginEnd="4dp"
+                android:minWidth="80dp"/>
+
+            <Button
+                android:id="@+id/endTurnButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="End Turn"
+                android:textSize="11sp"
+                android:backgroundTint="#FF5722"
+                android:minWidth="80dp"/>
+
+        </LinearLayout>
+
     </LinearLayout>
 
     <!-- Player Hand -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/playerHandRecyclerView"
-        android:layout_width="match_parent"
-        android:layout_height="120dp"
+        android:layout_width="0dp"
+        android:layout_height="100dp"
         android:orientation="horizontal"
-        android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"/>
+        android:padding="4dp"
+        android:background="#66BB6A"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

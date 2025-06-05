@@ -18,12 +18,12 @@ data class SpellCard(
     override val name: String,
     override val manaCost: Int,
     override val imageRes: Int,
-    val effect: (GameEngine, List<Any>) -> Unit,
+    val effect: (GameEngineInterface, List<Any>) -> Unit,
     val targetingType: TargetingType = TargetingType.NO_TARGET,
     val description: String = ""
 ) : Card(id, name, manaCost, imageRes) {
 
-    fun cast(gameEngine: GameEngine, explicitTargets: List<Any> = emptyList()) {
+    fun cast(gameEngine: GameEngineInterface, explicitTargets: List<Any> = emptyList()) {
         val finalTargets = if (explicitTargets.isEmpty()) {
             // Auto-targeting based on targeting type
             when (targetingType) {
@@ -72,7 +72,7 @@ data class SpellCard(
         )
     }
 
-    fun getValidTargets(gameEngine: GameEngine): List<Any> {
+    fun getValidTargets(gameEngine: GameEngineInterface): List<Any> {
         return when (targetingType) {
             TargetingType.SINGLE_MINION ->
                 gameEngine.playerBoard + gameEngine.botBoard

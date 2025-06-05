@@ -1,9 +1,15 @@
 package com.rench.kvartstone.data.repositories
 
 import android.content.Context
-import com.rench.kvartstone.domain.GameEngine
+import com.rench.kvartstone.data.AppDatabase
+import com.rench.kvartstone.data.entities.HeroPowerEntity
+import com.rench.kvartstone.domain.GameEngineInterface
+import com.rench.kvartstone.domain.Hero
 import com.rench.kvartstone.domain.HeroPower
+import com.rench.kvartstone.domain.MinionCard
+import com.rench.kvartstone.domain.Turn
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
 class HeroPowerRepository(private val context: Context) {
     private val heroPowerDao = AppDatabase.getDatabase(context).heroPowerDao()
@@ -27,7 +33,7 @@ class HeroPowerRepository(private val context: Context) {
         )
     }
 
-    private fun createHeroPowerEffect(type: String, value: Int, targetType: String): (GameEngine, Any?) -> Unit {
+    private fun createHeroPowerEffect(type: String, value: Int, targetType: String): (GameEngineInterface, Any?) -> Unit {
         return when (type) {
             "damage" -> { engine, target ->
                 when (targetType) {
@@ -79,13 +85,45 @@ class HeroPowerRepository(private val context: Context) {
         }
     }
 
+    suspend fun getHeroPowerById(heroPowerId: Int): HeroPower {
+        val entity = heroPowerDao.getHeroPowerById(heroPowerId)
+        return if (entity != null) {
+            entityToDomain(entity)
+        } else {
+            // Return a default hero power if not found
+            createDefaultPlayerHeroPower()
+        }
+    }
+
+    private fun createDefaultPlayerHeroPower(): HeroPower {
+        return HeroPower(
+            id = 1,
+            name = "Fireblast",
+            description = "Deal 1 damage to any character",
+            cost = 2,
+            imageRes = android.R.drawable.ic_menu_close_clear_cancel, // Fallback icon
+            effect = { engine, target ->
+                when (target) {
+                    is MinionCard -> target.takeDamage(1)
+                    is Hero -> target.takeDamage(1)
+                    else -> {
+                        // Default: damage enemy hero
+                        if (engine.currentTurn == Turn.PLAYER) {
+                            engine.botHero.takeDamage(1)
+                        } else {
+                            engine.playerHero.takeDamage(1)
+                        }
+                    }
+                }
+            }
+        )
+    }
+
     suspend fun initializeDefaultHeroPowers() {
         val defaultPowers = listOf(
-            HeroPowerEntity(1, "Fireblast", "Deal 1 damage to any character", 2, "hero_power_fire", "damage", 1, "any_character"),
-            HeroPowerEntity(2, "Armor Up!", "Gain 2 Armor", 2, "ic_hero_power_warrior", "armor", 2, "self"), // Keep if you have this
-
+            HeroPowerEntity(1, "Fireblast", "Deal 1 damage to any character", 2, "hero_power_fire", "damage", 1, "any_character", true),
+            HeroPowerEntity(2, "Armor Up!", "Gain 2 Armor", 2, "ic_hero_power_warrior", "armor", 2, "self", true)
         )
         defaultPowers.forEach { heroPowerDao.insertPower(it) }
     }
-
 }

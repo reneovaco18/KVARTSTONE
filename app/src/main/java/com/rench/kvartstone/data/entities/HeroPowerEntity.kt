@@ -1,4 +1,3 @@
-// Enhanced HeroPower Entity for database storage
 package com.rench.kvartstone.data.entities
 
 import androidx.room.Entity
@@ -11,8 +10,9 @@ data class HeroPowerEntity(
     val description: String,
     val manaCost: Int,
     val imageResName: String,
-    val effectType: String, // "damage", "heal", "draw", "armor", "summon"
+    val effectType: String,
     val effectValue: Int,
-    val targetType: String, // "enemy_hero", "any_character", "self", "all_enemies", "random"
-    val isActive: Boolean = true
+    val targetType: String,
+    val isActive: Boolean = true,
+    val createdAt: Long = System.currentTimeMillis()
 )

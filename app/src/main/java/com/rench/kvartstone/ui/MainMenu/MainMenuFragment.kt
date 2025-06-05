@@ -7,6 +7,8 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.rench.kvartstone.R
+import com.rench.kvartstone.data.repositories.CardRepository
+import com.rench.kvartstone.data.repositories.DeckRepository
 import com.rench.kvartstone.data.repositories.HeroPowerRepository
 import kotlinx.coroutines.launch
 

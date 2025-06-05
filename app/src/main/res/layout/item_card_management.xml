@@ -3,100 +3,150 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
-    app:cardCornerRadius="8dp"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
     app:cardElevation="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:orientation="vertical"
         android:padding="12dp">
 
-        <ImageView
-            android:id="@+id/cardImage"
-            android:layout_width="60dp"
-            android:layout_height="80dp"
-            android:layout_marginEnd="12dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/card_icon_dragon" />
-
+        <!-- Card Header -->
         <LinearLayout
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
 
-            <TextView
-                android:id="@+id/cardName"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Card Name"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+            <!-- Card Image -->
+            <ImageView
+                android:id="@+id/cardImage"
+                android:layout_width="48dp"
+                android:layout_height="64dp"
+                android:layout_marginEnd="12dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/ic_card_minion_generic"
+                android:background="@drawable/card_image_border" />
 
-            <TextView
-                android:id="@+id/cardType"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Minion"
-                android:textSize="14sp"
-                android:textColor="@color/text_secondary_light" />
-
+            <!-- Card Info -->
             <LinearLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="4dp">
+                android:layout_weight="1"
+                android:orientation="vertical">
 
+                <!-- Card Name -->
                 <TextView
-                    android:id="@+id/cardCost"
-                    android:layout_width="wrap_content"
+                    android:id="@+id/cardName"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="3"
-                    android:textSize="14sp"
-                    android:textColor="@color/mana_blue"
-                    android:background="@drawable/mana_crystal"
-                    android:padding="4dp"
-                    android:minWidth="24dp"
-                    android:gravity="center" />
+                    android:text="Card Name"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end" />
 
-                <TextView
-                    android:id="@+id/cardRarity"
-                    android:layout_width="wrap_content"
+                <!-- Card Type and Cost -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Common"
-                    android:textSize="12sp"
-                    android:layout_marginStart="8dp"
-                    android:textStyle="bold" />
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp">
+
+                    <TextView
+                        android:id="@+id/cardType"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Minion"
+                        android:textSize="14sp"
+                        android:textColor="@android:color/darker_gray" />
+
+                    <TextView
+                        android:id="@+id/cardCost"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="3"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:background="@drawable/mana_crystal"
+                        android:textColor="@android:color/white"
+                        android:padding="4dp"
+                        android:minWidth="24dp"
+                        android:gravity="center" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center">
-
-            <View
-                android:id="@+id/customIndicator"
-                android:layout_width="8dp"
-                android:layout_height="8dp"
-                android:background="@drawable/custom_card_indicator"
-                android:visibility="gone" />
-
-            <ImageButton
+            <!-- Delete Button -->
+            <ImageView
                 android:id="@+id/deleteButton"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/delete_button_background"
-                android:src="@android:drawable/ic_menu_delete"
+                android:layout_marginStart="8dp"
+                android:src="@drawable/ic_delete"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="4dp"
                 android:contentDescription="Delete card" />
 
         </LinearLayout>
+
+        <!-- Card Stats (for minions) -->
+        <LinearLayout
+            android:id="@+id/statsLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/cardAttack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="2"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:background="@drawable/attack_bg"
+                android:textColor="@android:color/white"
+                android:padding="4dp"
+                android:layout_marginEnd="8dp"
+                android:minWidth="20dp"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/cardHealth"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="3"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:background="@drawable/health_bg"
+                android:textColor="@android:color/white"
+                android:padding="4dp"
+                android:minWidth="20dp"
+                android:gravity="center" />
+
+        </LinearLayout>
+
+        <!-- Custom Card Indicator -->
+        <TextView
+            android:id="@+id/customIndicator"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CUSTOM"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:background="@drawable/custom_card_badge"
+            android:padding="2dp"
+            android:layout_gravity="end"
+            android:layout_marginTop="4dp"
+            android:visibility="gone" />
 
     </LinearLayout>
 

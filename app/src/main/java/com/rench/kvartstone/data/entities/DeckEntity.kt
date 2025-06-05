@@ -1,8 +1,8 @@
 package com.rench.kvartstone.data.entities
+
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-// Deck Entity for storing pre-built and custom decks
 @Entity(tableName = "decks")
 data class DeckEntity(
     @PrimaryKey val id: Int,
