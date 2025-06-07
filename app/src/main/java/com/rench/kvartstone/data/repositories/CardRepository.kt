@@ -15,9 +15,15 @@ class CardRepository(private val context: Context) {
         entities.map { entity -> entityToCard(entity) }
     }
 
+    fun getAllCardsAsEntity(): Flow<List<CardEntity>> = cardDao.getAllCards()
+
     suspend fun getCardById(cardId: Int): Card? {
         val entity = cardDao.getCardById(cardId) ?: return null
         return entityToCard(entity)
+    }
+
+    suspend fun insertCard(cardEntity: CardEntity) {
+        cardDao.insertCard(cardEntity)
     }
 
     private fun entityToCard(entity: CardEntity): Card {
@@ -31,6 +37,7 @@ class CardRepository(private val context: Context) {
                 name = entity.name,
                 manaCost = entity.manaCost,
                 imageRes = if (resourceId != 0) resourceId else R.drawable.ic_card_minion_generic,
+                imageUri = entity.imageUri,
                 attack = entity.attack ?: 0,
                 maxHealth = entity.health ?: 1
             )
@@ -39,8 +46,8 @@ class CardRepository(private val context: Context) {
                 name = entity.name,
                 manaCost = entity.manaCost,
                 imageRes = if (resourceId != 0) resourceId else R.drawable.ic_card_spell_generic,
+                imageUri = entity.imageUri,
                 effect = { gameEngine, targets ->
-                    // Updated to work with GameEngineInterface
                     if (targets.isNotEmpty() && targets[0] is MinionCard) {
                         (targets[0] as MinionCard).takeDamage(1)
                     }

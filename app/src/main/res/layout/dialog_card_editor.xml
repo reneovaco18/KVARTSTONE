@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="16dp">
@@ -10,7 +9,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- Dialog Title -->
+        <!-- Title -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -20,61 +19,52 @@
             android:gravity="center"
             android:layout_marginBottom="16dp" />
 
-        <!-- Card Image Preview -->
+        <!-- Image Preview -->
         <ImageView
             android:id="@+id/cardImagePreview"
             android:layout_width="120dp"
             android:layout_height="160dp"
             android:layout_gravity="center"
-            android:layout_marginBottom="8dp"
             android:scaleType="centerCrop"
             android:src="@drawable/ic_card_minion_generic"
-            android:background="@drawable/card_preview_border" />
+            android:background="@drawable/card_preview_border"
+            android:layout_marginBottom="8dp" />
 
         <!-- Select Image Button -->
         <Button
-            android:id="@+id/selectImageButton"
-            android:layout_width="wrap_content"
+            android:id="@+id/btn_select_image"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
             android:text="Select Image"
-            android:textSize="12sp"
-            android:paddingHorizontal="12dp"
             android:layout_marginBottom="16dp" />
 
         <!-- Card Name -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:hint="Card Name">
-
-            <EditText
+            android:hint="Card Name"
+            android:layout_marginBottom="8dp">
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/nameInput"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:inputType="text"
-                android:maxLines="1" />
-
+                android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <!-- Card Description -->
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:hint="Card Description">
-
-            <EditText
+            android:hint="Card Description"
+            android:layout_marginBottom="8dp">
+            <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/descriptionInput"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:inputType="textMultiLine"
                 android:maxLines="3" />
-
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Type Spinner -->
+        <!-- Card Type Spinner -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -101,7 +91,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp" />
 
-        <!-- Mana Cost -->
+        <!-- Cost SeekBar -->
         <TextView
             android:id="@+id/costLabel"
             android:layout_width="wrap_content"
@@ -113,11 +103,11 @@
             android:id="@+id/costSeekBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
             android:max="10"
-            android:progress="1" />
+            android:progress="1"
+            android:layout_marginBottom="16dp" />
 
-        <!-- Stats Container (for minions only) -->
+        <!-- Stats for Minions -->
         <LinearLayout
             android:id="@+id/statsContainer"
             android:layout_width="match_parent"
@@ -137,9 +127,9 @@
                 android:id="@+id/attackSeekBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
                 android:max="12"
-                android:progress="1" />
+                android:progress="1"
+                android:layout_marginBottom="8dp" />
 
             <!-- Health -->
             <TextView
@@ -153,9 +143,9 @@
                 android:id="@+id/healthSeekBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
                 android:max="12"
-                android:progress="1" />
+                android:progress="1"
+                android:layout_marginBottom="16dp" />
 
         </LinearLayout>
 
@@ -173,11 +163,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp"
-                android:text="Cancel"
-                android:textSize="14sp"
-                android:minHeight="48dp"
-                android:paddingHorizontal="8dp"
-                style="@style/Widget.Material3.Button.OutlinedButton" />
+                android:text="Cancel" />
 
             <Button
                 android:id="@+id/saveButton"
@@ -185,13 +171,9 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
-                android:text="Save"
-                android:textSize="14sp"
-                android:minHeight="48dp"
-                android:paddingHorizontal="8dp" />
+                android:text="Save" />
 
         </LinearLayout>
 
     </LinearLayout>
-
 </ScrollView>

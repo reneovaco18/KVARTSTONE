@@ -1,14 +1,19 @@
 package com.rench.kvartstone.ui.cardmanagement
 
 import android.app.Dialog
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.DialogFragment
+import coil.load
 import com.rench.kvartstone.R
 import com.rench.kvartstone.data.entities.CardEntity
+import com.rench.kvartstone.utils.ImageStorageManager
+import java.io.File
 
 class CardEditorDialog : DialogFragment() {
 
@@ -23,6 +28,7 @@ class CardEditorDialog : DialogFragment() {
 
     private var existingCard: CardEntity? = null
     private var onSaveCallback: ((CardEntity) -> Unit)? = null
+    private var selectedImageUri: Uri? = null
 
     private lateinit var nameInput: EditText
     private lateinit var descriptionInput: EditText
@@ -39,6 +45,19 @@ class CardEditorDialog : DialogFragment() {
     private lateinit var selectImageButton: Button
     private lateinit var saveButton: Button
     private lateinit var cancelButton: Button
+
+    private val imagePickerLauncher = registerForActivityResult(
+        ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let {
+            selectedImageUri = it
+            cardImagePreview.load(it) {
+                crossfade(true)
+                placeholder(R.drawable.ic_card_minion_generic)
+                error(R.drawable.ic_card_minion_generic)
+            }
+        }
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.dialog_card_editor, container, false)
@@ -77,7 +96,7 @@ class CardEditorDialog : DialogFragment() {
         healthLabel = view.findViewById(R.id.healthLabel)
         statsContainer = view.findViewById(R.id.statsContainer)
         cardImagePreview = view.findViewById(R.id.cardImagePreview)
-        selectImageButton = view.findViewById(R.id.selectImageButton)
+        selectImageButton = view.findViewById(R.id.btn_select_image)
         saveButton = view.findViewById(R.id.saveButton)
         cancelButton = view.findViewById(R.id.cancelButton)
     }
@@ -142,8 +161,7 @@ class CardEditorDialog : DialogFragment() {
         }
 
         selectImageButton.setOnClickListener {
-            // Image selection logic would go here
-            Toast.makeText(context, "Image selection not implemented yet", Toast.LENGTH_SHORT).show()
+            imagePickerLauncher.launch("image/*")
         }
     }
 
@@ -153,7 +171,6 @@ class CardEditorDialog : DialogFragment() {
         typeSpinner.setSelection(if (card.type == "minion") 0 else 1)
         costSeekBar.progress = card.manaCost
 
-        // Set rarity selection
         val rarityPosition = when (card.rarity.lowercase()) {
             "common" -> 0
             "rare" -> 1
@@ -167,6 +184,15 @@ class CardEditorDialog : DialogFragment() {
             attackSeekBar.progress = card.attack ?: 0
             healthSeekBar.progress = card.health ?: 1
         }
+
+        // Load existing custom image if it exists
+        if (card.imageUri != null) {
+            cardImagePreview.load(File(card.imageUri)) {
+                crossfade(true)
+                placeholder(R.drawable.ic_card_minion_generic)
+                error(R.drawable.ic_card_minion_generic)
+            }
+        }
     }
 
     private fun saveCard() {
@@ -175,6 +201,11 @@ class CardEditorDialog : DialogFragment() {
             Toast.makeText(context, "Name is required", Toast.LENGTH_SHORT).show()
             return
         }
+
+        // Handle saving the selected image
+        val imagePath = selectedImageUri?.let { uri ->
+            ImageStorageManager.saveImageToInternalStorage(requireContext(), uri)
+        } ?: existingCard?.imageUri // Keep old path if no new image is selected
 
         val description = descriptionInput.text.toString().trim()
         val type = if (typeSpinner.selectedItemPosition == 0) "minion" else "spell"
@@ -192,9 +223,10 @@ class CardEditorDialog : DialogFragment() {
             manaCost = cost,
             attack = attack,
             health = health,
-            rarity = rarity
+            rarity = rarity,
+            imageUri = imagePath
         ) ?: CardEntity(
-            id = 0, // Auto-generate
+            id = 0,
             name = name,
             description = description,
             type = type,
@@ -204,6 +236,7 @@ class CardEditorDialog : DialogFragment() {
             effect = null,
             imageResName = "ic_card_generic",
             rarity = rarity,
+            imageUri = imagePath,
             isCustom = true
         )
 

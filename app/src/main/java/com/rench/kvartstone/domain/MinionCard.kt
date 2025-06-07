@@ -5,23 +5,24 @@ data class MinionCard(
     override val name: String,
     override val manaCost: Int,
     override val imageRes: Int,
+    override val imageUri: String? = null,
     var attack: Int,
     var maxHealth: Int,
     var currentHealth: Int = maxHealth,
     var hasDivineShield: Boolean = false,
     var hasAttackedThisTurn: Boolean = false,
-    var canAttackThisTurn: Boolean = false, // Summoning sickness
+    var canAttackThisTurn: Boolean = false,
     var battlecryEffect: ((GameEngineInterface, List<Any>) -> Unit)? = null,
     var deathrattleEffect: ((GameEngineInterface) -> Unit)? = null,
-    var summoned: Boolean = false // Track if just summoned this turn
-) : Card(id, name, manaCost, imageRes) {
+    var summoned: Boolean = false
+) : Card(id, name, manaCost, imageRes, imageUri) {
 
-    val health: Int get() = currentHealth // Backward compatibility
+    val health: Int get() = currentHealth
 
     fun takeDamage(amount: Int, gameEngine: GameEngineInterface? = null) {
         if (hasDivineShield) {
             hasDivineShield = false
-            return // Divine shield absorbs first damage
+            return
         }
         currentHealth -= amount
         if (currentHealth <= 0) {
@@ -40,11 +41,9 @@ data class MinionCard(
 
     private fun getCurrentEngine(): GameEngineInterface {
         return try {
-            // Try to get ImprovedGameEngine first
             ImprovedGameEngine.current
         } catch (e: Exception) {
             try {
-                // Fallback to regular GameEngine
                 GameEngine.current
             } catch (e2: Exception) {
                 throw IllegalStateException("No game engine instance available for deathrattle trigger")
@@ -53,12 +52,11 @@ data class MinionCard(
     }
 
     fun canAttack(): Boolean = canAttackThisTurn && !hasAttackedThisTurn && currentHealth > 0
-
     fun isDead(): Boolean = currentHealth <= 0
 
     fun resetForNewTurn() {
         hasAttackedThisTurn = false
-        canAttackThisTurn = true // Can attack after first turn
+        canAttackThisTurn = true
         summoned = false
     }
 
