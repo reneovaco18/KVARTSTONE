@@ -13,7 +13,12 @@ import kotlinx.coroutines.launch
 
 class GameViewModel(application: Application) : AndroidViewModel(application) {
 
-    private lateinit var gameEngine: GameEngineInterface
+    companion object {
+        private const val MAX_HAND_SIZE = 5
+        private const val MAX_BOARD_SIZE = 7
+    }
+
+    private lateinit var gameEngine: ImprovedGameEngine
 
     // Repository instances
     private val heroPowerRepository = HeroPowerRepository(application)
@@ -56,11 +61,14 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private val _selectedMinion = MutableLiveData<Int?>(null)
     val selectedMinion: LiveData<Int?> = _selectedMinion
 
+    private val _deckCount = MutableLiveData(30)
+    val deckCount: LiveData<Int> = _deckCount
+
     fun initializeGame(heroPowerId: Int, deckId: Int) {
         viewModelScope.launch {
             try {
-                val selectedHeroPower = createDefaultPlayerHeroPower() // Fallback
-                val selectedDeck = createDefaultDeck() // Fallback
+                val selectedHeroPower = createDefaultPlayerHeroPower()
+                val selectedDeck = createDefaultDeck()
 
                 val playerHero = Hero(
                     name = "Player",
@@ -78,18 +86,28 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
                     heroPowerImageRes = R.drawable.ic_hero_power_bot
                 )
 
-                gameEngine = GameEngine(
+                gameEngine = ImprovedGameEngine(
                     selectedDeck.cards,
                     createDefaultBotDeck().cards,
                     playerHero,
                     botHero
                 )
 
+                limitHandSize()
                 updateGameState()
                 _gameState.value = "READY"
+                _gameMessage.value = "Game started! Click cards to select, click again to play."
             } catch (e: Exception) {
                 _gameState.value = "ERROR"
                 _gameMessage.value = "Failed to initialize game: ${e.message}"
+            }
+        }
+    }
+
+    private fun limitHandSize() {
+        if (::gameEngine.isInitialized) {
+            while (gameEngine.playerHand.size > MAX_HAND_SIZE) {
+                gameEngine.playerHand.removeLastOrNull()
             }
         }
     }
@@ -98,11 +116,15 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         return HeroPower(
             id = 1,
             name = "Fireblast",
-            description = "Deal 1 damage",
+            description = "Deal 1 damage to any character",
             cost = 2,
             imageRes = R.drawable.ic_hero_power_player,
-            effect = { engine, _ ->
-                engine.botHero.takeDamage(1)
+            effect = { engine, target ->
+                when (target) {
+                    is MinionCard -> target.takeDamage(1)
+                    is Hero -> target.takeDamage(1)
+                    else -> engine.botHero.takeDamage(1)
+                }
             }
         )
     }
@@ -110,7 +132,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     private fun createDefaultBotHeroPower(): HeroPower {
         return HeroPower(
             id = 2,
-            name = "Armor Up",
+            name = "Armor Up!",
             description = "Gain 2 armor",
             cost = 2,
             imageRes = R.drawable.ic_hero_power_bot,
@@ -121,7 +143,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun createDefaultDeck(): Deck {
-        val cards = createSampleDeck()
+        val cards = CardFactory.createPlayerDeck()
         return Deck(
             id = 1,
             name = "Default Deck",
@@ -131,7 +153,7 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun createDefaultBotDeck(): Deck {
-        val cards = createSampleDeck()
+        val cards = CardFactory.createBotDeck()
         return Deck(
             id = 2,
             name = "Bot Deck",
@@ -140,34 +162,11 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
-    private fun createSampleDeck(): List<Card> {
-        return List(15) { index ->
-            when {
-                index < 10 -> MinionCard(
-                    id = index,
-                    name = "Minion $index",
-                    manaCost = (index % 5) + 1,
-                    imageRes = R.drawable.ic_card_minion_generic,
-                    attack = (index % 3) + 1,
-                    maxHealth = (index % 4) + 1
-                )
-                else -> SpellCard(
-                    id = index,
-                    name = "Spell $index",
-                    manaCost = (index % 3) + 1,
-                    imageRes = R.drawable.ic_card_spell_generic,
-                    effect = { engine, targets ->
-                        targets.filterIsInstance<MinionCard>().firstOrNull()?.takeDamage(2)
-                    }
-                )
-            }
-        }.shuffled()
-    }
-
     fun getValidTargetsForSelectedCard(): List<Any> {
-        val selectedCardIndex = selectedCard.value
+        val selectedCardIndex = selectedCard.value ?: return emptyList()
         val hand = playerHand.value ?: return emptyList()
-        if (selectedCardIndex == null || selectedCardIndex !in hand.indices) return emptyList()
+        if (selectedCardIndex !in hand.indices) return emptyList()
+
         val card = hand[selectedCardIndex]
         return when (card) {
             is SpellCard -> card.getValidTargets(gameEngine)
@@ -176,7 +175,9 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun updateGameState() {
-        _playerHand.value = gameEngine.playerHand.toList()
+        if (!::gameEngine.isInitialized) return
+
+        _playerHand.value = gameEngine.playerHand.take(MAX_HAND_SIZE)
         _playerBoard.value = gameEngine.playerBoard.toList()
         _botBoard.value = gameEngine.botBoard.toList()
         _playerHero.value = gameEngine.playerHero
@@ -184,87 +185,174 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         _playerMana.value = gameEngine.playerMana
         _playerMaxMana.value = gameEngine.playerMaxMana
         _turnNumber.value = gameEngine.turnNumber
+        _deckCount.value = gameEngine.playerDeck.size
 
-        if (gameEngine.gameOver) {
-            _gameState.value = "GAME_OVER"
-            _gameMessage.value = if (gameEngine.playerWon) "Victory!" else "Defeat!"
-        }
-    }
-
-    // Player Actions
-    fun selectCard(index: Int) {
-        if (gameState.value == "READY") {
-            _selectedCard.value = if (_selectedCard.value == index) null else index
-        }
-    }
-
-    fun playSelectedCard(target: Any? = null): Boolean {
-        return _selectedCard.value?.let { index ->
-            if (gameEngine.playCardFromHand(index, target)) {
-                _selectedCard.value = null
-                updateGameState()
-                true
-            } else {
-                false
+        when {
+            gameEngine.gameOver -> {
+                _gameState.value = "GAME_OVER"
+                _gameMessage.value = if (gameEngine.playerWon) "Victory!" else "Defeat!"
             }
-        } ?: false
+            gameEngine.currentTurn == Turn.PLAYER -> {
+                _gameState.value = "READY"
+                _gameMessage.value = "Your turn - Turn ${gameEngine.turnNumber}"
+            }
+            gameEngine.currentTurn == Turn.BOT -> {
+                _gameState.value = "BOT_TURN"
+                _gameMessage.value = "Enemy turn..."
+            }
+        }
+    }
+
+    fun selectCard(index: Int) {
+        if (gameState.value != "READY") return
+
+        if (index < 0) {
+            _selectedCard.value = null
+            return
+        }
+
+        val currentSelection = _selectedCard.value
+        if (currentSelection == index) {
+            playSelectedCard(null)
+        } else {
+            _selectedCard.value = index
+            _selectedMinion.value = null
+
+            val hand = playerHand.value ?: return
+            if (index < hand.size) {
+                val card = hand[index]
+                if (card is SpellCard && card.requiresTarget()) {
+                    _gameMessage.value = "Select a target for ${card.name}"
+                } else {
+                    _gameMessage.value = "Click ${card.name} again to play it"
+                }
+            }
+        }
+    }
+
+    fun playSelectedCard(target: Any?): Boolean {
+        val cardIndex = _selectedCard.value ?: return false
+        val hand = playerHand.value ?: return false
+
+        if (cardIndex >= hand.size) return false
+        val card = hand[cardIndex]
+
+        if (card.manaCost > gameEngine.playerMana) {
+            _gameMessage.value = "Not enough mana! Need ${card.manaCost}, have ${gameEngine.playerMana}"
+            return false
+        }
+
+        if (card is MinionCard && gameEngine.playerBoard.size >= MAX_BOARD_SIZE) {
+            _gameMessage.value = "Board is full! (Maximum ${MAX_BOARD_SIZE} minions)"
+            return false
+        }
+
+        val success = gameEngine.playCardFromHand(cardIndex, target)
+        if (success) {
+            _selectedCard.value = null
+            _gameMessage.value = "${card.name} played!"
+            updateGameState()
+        } else {
+            _gameMessage.value = "Cannot play ${card.name} right now"
+        }
+        return success
     }
 
     fun selectMinion(index: Int) {
-        if (gameState.value == "READY") {
-            _selectedMinion.value = if (_selectedMinion.value == index) null else index
+        if (gameState.value != "READY") return
+
+        if (index < 0) {
+            _selectedMinion.value = null
+            return
+        }
+
+        _selectedMinion.value = if (_selectedMinion.value == index) null else index
+        _selectedCard.value = null
+
+        val board = playerBoard.value ?: return
+        if (index < board.size) {
+            val minion = board[index]
+            if (minion.canAttack()) {
+                _gameMessage.value = "Select a target to attack with ${minion.name}"
+            } else {
+                _gameMessage.value = "${minion.name} cannot attack this turn"
+            }
         }
     }
 
     fun attackWithSelectedMinion(target: Any): Boolean {
-        return _selectedMinion.value?.let { attackerIndex ->
-            if (gameEngine.playerBoard.size > attackerIndex) {
-                val attacker = gameEngine.playerBoard[attackerIndex]
-                // Perform attack logic here
-                val success = gameEngine.attack(attacker, target)
-                if (success) {
-                    _selectedMinion.value = null
-                    updateGameState()
-                }
-                success
-            } else {
-                false
+        val minionIndex = _selectedMinion.value ?: return false
+        val board = playerBoard.value ?: return false
+
+        if (minionIndex >= board.size) return false
+        val attacker = board[minionIndex]
+
+        val success = gameEngine.attack(attacker, target)
+        if (success) {
+            _selectedMinion.value = null
+            val targetName = when (target) {
+                is MinionCard -> target.name
+                is Hero -> target.name
+                else -> "target"
             }
-        } ?: false
+            _gameMessage.value = "${attacker.name} attacked ${targetName}!"
+            updateGameState()
+        } else {
+            _gameMessage.value = "${attacker.name} cannot attack that target"
+        }
+        return success
     }
 
-    fun useHeroPower(): Boolean {
-        return if (canUseHeroPower()) {
-            val success = gameEngine.useHeroPower(null)
-            if (success) {
-                updateGameState()
-            }
-            success
+    fun useHeroPower(target: Any? = null): Boolean {
+        if (!canUseHeroPower()) return false
+
+        val success = gameEngine.useHeroPower(target)
+        if (success) {
+            _gameMessage.value = "Hero power used!"
+            updateGameState()
         } else {
-            false
+            _gameMessage.value = "Cannot use hero power!"
         }
+        return success
     }
 
     fun endTurn() {
-        if (gameEngine.currentTurn == Turn.PLAYER) {
-            gameEngine.endTurn()
+        if (gameEngine.currentTurn != Turn.PLAYER) return
+
+        _selectedCard.value = null
+        _selectedMinion.value = null
+
+        gameEngine.endTurn()
+
+        if (gameEngine.currentTurn == Turn.BOT) {
+            _gameState.value = "BOT_TURN"
             viewModelScope.launch {
-                // Process bot turn if using ImprovedGameEngine
-                if (gameEngine is ImprovedGameEngine) {
-                    (gameEngine as ImprovedGameEngine).processBotTurn()
-                }
+                gameEngine.processBotTurn()
                 updateGameState()
             }
+        } else {
+            updateGameState()
         }
     }
 
-    // Helper methods
     fun canPlayCard(position: Int): Boolean {
-        return gameEngine.playerHand.getOrNull(position)?.manaCost ?: 0 <= gameEngine.playerMana
+        val hand = playerHand.value ?: return false
+        if (position >= hand.size) return false
+
+        val card = hand[position]
+        val hasEnoughMana = card.manaCost <= gameEngine.playerMana
+        val boardNotFull = if (card is MinionCard) {
+            gameEngine.playerBoard.size < MAX_BOARD_SIZE
+        } else true
+
+        return hasEnoughMana && boardNotFull && gameState.value == "READY"
     }
 
     fun canAttackWithMinion(position: Int): Boolean {
-        return gameEngine.playerBoard.getOrNull(position)?.canAttack() ?: false
+        val board = playerBoard.value ?: return false
+        return position < board.size &&
+                board[position].canAttack() &&
+                gameState.value == "READY"
     }
 
     fun canUseHeroPower(): Boolean {
@@ -277,10 +365,8 @@ class GameViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun getValidTargets(): List<Any> {
-        return when (val card = _selectedCard.value?.let { gameEngine.playerHand.getOrNull(it) }) {
-            is SpellCard -> card.getValidTargets(gameEngine)
-            else -> emptyList()
-        }
-    }
+    fun getHandSize(): Int = playerHand.value?.size ?: 0
+    fun getMaxHandSize(): Int = MAX_HAND_SIZE
+    fun getBoardSize(): Int = playerBoard.value?.size ?: 0
+    fun getMaxBoardSize(): Int = MAX_BOARD_SIZE
 }

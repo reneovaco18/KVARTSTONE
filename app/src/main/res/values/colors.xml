@@ -66,20 +66,45 @@
     <color name="purple_700">#FF3700B3</color>
     <color name="teal_200">#FF03DAC5</color>
     <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+
 
     <!-- Renamed for consistency -->
     <color name="mana_blue">#2196F3</color>
-    <color name="minion_brown">#8D6E63</color>
-    <color name="attack_red">#F44336</color>
-    <color name="healthy_green">#4CAF50</color>
-    <color name="spell_blue">#3F51B5</color>
-    <color name="selected_green">#4CAF50</color>
-    <color name="dead_red">#B71C1C</color>
-    <color name="damaged_orange">#FF9800</color>
-    <color name="buffed_blue">#2196F3</color>
-    <color name="hero_health_high">#4CAF50</color>
-    <color name="hero_health_medium">#FFC107</color>
-    <color name="hero_health_low">#F44336</color>
+
+    <!-- Primary Game Colors -->
+    <color name="game_background">#1E3A8A</color>
+    <color name="enemy_area">#DC2626</color>
+    <color name="player_area">#059669</color>
+    <color name="neutral_area">#374151</color>
+
+    <!-- Card and UI Colors -->
+    <color name="card_background">#FFFFFF</color>
+    <color name="minion_brown">#8B4513</color>
+    <color name="spell_blue">#4F46E5</color>
+
+    <color name="selected_green">#10B981</color>
+
+    <!-- Text Colors -->
+
+
+    <!-- Health and Mana Colors -->
+
+    <color name="hero_health_high">#10B981</color>
+    <color name="hero_health_medium">#F59E0B</color>
+    <color name="hero_health_low">#EF4444</color>
+
+    <!-- Action Colors -->
+
+    <color name="attack_red">#EF4444</color>
+    <color name="damaged_orange">#F97316</color>
+    <color name="healthy_green">#10B981</color>
+    <color name="buffed_blue">#3B82F6</color>
+    <color name="dead_red">#7F1D1D</color>
+
+    <!-- Background Overlays -->
+
+
+    <!-- Legacy Colors (maintain compatibility) -->
+    <color name="black">#000000</color>
+    <color name="white">#FFFFFF</color>
 </resources>

@@ -13,6 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.rench.kvartstone.R
 import com.rench.kvartstone.domain.MinionCard
 import com.rench.kvartstone.domain.Hero
+import com.rench.kvartstone.domain.SpellCard
 import com.rench.kvartstone.ui.adapters.CardHandAdapter
 import com.rench.kvartstone.ui.adapters.MinionBoardAdapter
 import com.rench.kvartstone.ui.viewmodel.GameViewModel
@@ -25,7 +26,9 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
     private lateinit var handAdapter: CardHandAdapter
     private lateinit var playerBoardAdapter: MinionBoardAdapter
     private lateinit var botBoardAdapter: MinionBoardAdapter
-
+    private lateinit var handToggleButton: com.google.android.material.floatingactionbutton.FloatingActionButton
+    private lateinit var playerHandArea: androidx.cardview.widget.CardView
+    private var isHandVisible = false
     // UI Elements
     private lateinit var playerHeroHealth: TextView
     private lateinit var botHeroHealth: TextView
@@ -52,6 +55,8 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
         val deckId = args.deckId ?: 1 // Default to 1 if not provided
 
         viewModel.initializeGame(heroPowerId, deckId)
+        // ADD THIS LINE:
+        initializeHandPosition()
     }
 
     private fun initializeViews(view: View) {
@@ -62,6 +67,8 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
         gameStatusText = view.findViewById(R.id.gameStatusText)
         heroPowerButton = view.findViewById(R.id.heroPowerButton)
         turnNumberText = view.findViewById(R.id.turnNumberText)
+        handToggleButton = view.findViewById(R.id.handToggleButton)
+        playerHandArea = view.findViewById(R.id.playerHandArea)
     }
 
     private fun setupRecyclerViews(view: View) {
@@ -184,7 +191,46 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
             updateTargetingMode()
         }
     }
+    private fun initializeHandPosition() {
+        // Set initial position for smooth animation
+        playerHandArea.translationY = playerHandArea.height.toFloat()
+        playerHandArea.alpha = 0f
+    }
+    private fun toggleHandVisibility() {
+        isHandVisible = !isHandVisible
 
+        if (isHandVisible) {
+            // Show hand with slide up animation
+            playerHandArea.visibility = View.VISIBLE
+            playerHandArea.animate()
+                .translationY(0f)
+                .alpha(1f)
+                .setDuration(300)
+                .start()
+
+            // Update button icon (rotate arrow up)
+            handToggleButton.animate()
+                .rotation(180f)
+                .setDuration(300)
+                .start()
+        } else {
+            // Hide hand with slide down animation
+            playerHandArea.animate()
+                .translationY(playerHandArea.height.toFloat())
+                .alpha(0f)
+                .setDuration(300)
+                .withEndAction {
+                    playerHandArea.visibility = View.GONE
+                }
+                .start()
+
+            // Update button icon (rotate arrow down)
+            handToggleButton.animate()
+                .rotation(0f)
+                .setDuration(300)
+                .start()
+        }
+    }
     private fun updateHeroPowerButton() {
         val canUse = viewModel.canUseHeroPower()
         val gameReady = viewModel.gameState.value == "READY"
@@ -202,7 +248,7 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
         heroPowerButton.setOnClickListener {
             if (viewModel.canUseHeroPower()) {
                 viewModel.useHeroPower()
-                updateHeroPowerButton() // Update button state immediately
+                updateHeroPowerButton()
             } else {
                 showMessage("Cannot use hero power!")
             }
@@ -215,6 +261,11 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
                 handleHeroTargeting(hero)
             }
         }
+
+        // ADD THIS BLOCK:
+        handToggleButton.setOnClickListener {
+            toggleHandVisibility()
+        }
     }
 
     private fun handleCardSelection(position: Int) {
@@ -223,8 +274,24 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
             return
         }
 
-        viewModel.selectCard(position)
+        val currentSelection = viewModel.selectedCard.value
+        if (currentSelection == position) {
+            // Same card clicked again - try to play it
+            val card = viewModel.playerHand.value?.getOrNull(position)
+            if (card is SpellCard && card.requiresTarget()) {
+                // Spell needs target - enter targeting mode
+                updateTargetingMode()
+            } else {
+                // Play the card immediately (minions or non-targeting spells)
+                viewModel.playSelectedCard(null)
+                clearSelections()
+            }
+        } else {
+            // Different card clicked - select it
+            viewModel.selectCard(position)
+        }
     }
+
 
     private fun handleMinionSelection(position: Int) {
         if (awaitingTarget) {

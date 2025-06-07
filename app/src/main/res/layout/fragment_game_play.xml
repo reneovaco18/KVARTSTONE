@@ -4,189 +4,482 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#2E7D32">
+    android:background="#1E3A8A">
 
-    <!-- Top Status Bar with Bot Hero -->
-    <LinearLayout
-        android:id="@+id/topStatusBar"
+    <!-- Enemy Hero Section (Top) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/enemyHeroCard"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="8dp"
-        android:background="#1B5E20"
-        android:gravity="center_vertical"
+        android:layout_height="80dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="#DC2626"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toStartOf="@id/deckArea">
 
-        <!-- Game Status (Left Side) -->
-        <TextView
-            android:id="@+id/gameStatusText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Your turn - Turn 1"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/white"
-            android:gravity="start|center_vertical"/>
-
-        <!-- Bot Hero (Center) -->
         <LinearLayout
-            android:id="@+id/botHeroArea"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:padding="4dp">
+            android:gravity="center_vertical"
+            android:padding="12dp">
 
+            <!-- Enemy Hero Portrait -->
             <ImageView
                 android:id="@+id/botHeroImage"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_marginEnd="12dp"
                 android:src="@drawable/ic_hero_bot"
-                android:background="@drawable/hero_frame"/>
+                android:background="@drawable/hero_frame" />
 
-            <TextView
-                android:id="@+id/botHeroHealth"
-                android:layout_width="wrap_content"
+            <!-- Enemy Info -->
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="Health: 30/30"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                android:textSize="12sp"
-                android:layout_marginStart="8dp"/>
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/botHeroName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Enemy Hero"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp">
+
+                    <TextView
+                        android:id="@+id/botHeroHealth"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="❤️ 30"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/white"
+                        android:layout_marginEnd="16dp" />
+
+                    <TextView
+                        android:id="@+id/botManaDisplay"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="💎 1/1"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#60A5FA" />
+
+                </LinearLayout>
+
+            </LinearLayout>
 
         </LinearLayout>
 
-        <!-- Turn Number (Right Side) -->
-        <TextView
-            android:id="@+id/turnNumberText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Turn: 1"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/white"
-            android:gravity="end|center_vertical"/>
+    </androidx.cardview.widget.CardView>
 
-    </LinearLayout>
+    <!-- Deck Area (Right Side) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/deckArea"
+        android:layout_width="120dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="#374151"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/playerControlsCard">
 
-    <!-- Bot Board -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/botBoardRecyclerView"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="16dp">
+
+            <!-- Deck Stack Visual -->
+            <FrameLayout
+                android:layout_width="80dp"
+                android:layout_height="100dp"
+                android:layout_marginBottom="12dp">
+
+                <!-- Multiple card stacks for depth effect -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="6dp"
+                    android:layout_marginStart="6dp"
+                    android:background="#1F2937"
+                    android:alpha="0.6" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="3dp"
+                    android:layout_marginStart="3dp"
+                    android:background="#374151"
+                    android:alpha="0.8" />
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_card_back"
+                    android:scaleType="centerCrop"
+                    android:background="@drawable/card_border" />
+
+            </FrameLayout>
+
+            <!-- Deck Count -->
+            <TextView
+                android:id="@+id/deckCountText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="15"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cards Left"
+                android:textSize="12sp"
+                android:textColor="#9CA3AF" />
+
+            <!-- Game Status -->
+            <TextView
+                android:id="@+id/gameStatusText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your Turn"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#10B981"
+                android:layout_marginTop="16dp"
+                android:gravity="center" />
+
+            <TextView
+                android:id="@+id/turnNumberText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Turn 1"
+                android:textSize="12sp"
+                android:textColor="#9CA3AF"
+                android:layout_marginTop="4dp" />
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Enemy Minion Board -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/enemyBoardCard"
         android:layout_width="0dp"
-        android:layout_height="80dp"
-        android:orientation="horizontal"
-        android:padding="4dp"
-        app:layout_constraintTop_toBottomOf="@id/topStatusBar"
+        android:layout_height="140dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#7F1D1D"
+        app:layout_constraintTop_toBottomOf="@id/enemyHeroCard"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toStartOf="@id/deckArea">
 
-    <!-- Player Board -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/playerBoardRecyclerView"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Enemy Board"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="4dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/botBoardRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:clipToPadding="false" />
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Player Minion Board -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/playerBoardCard"
         android:layout_width="0dp"
-        android:layout_height="80dp"
-        android:orientation="horizontal"
-        android:padding="4dp"
-        app:layout_constraintBottom_toTopOf="@id/controlsArea"
+        android:layout_height="140dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="4dp"
+        app:cardBackgroundColor="#059669"
+        app:layout_constraintTop_toBottomOf="@id/enemyBoardCard"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toStartOf="@id/deckArea">
 
-    <!-- Controls Area with Player Hero -->
-    <LinearLayout
-        android:id="@+id/controlsArea"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your Board"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="4dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/playerBoardRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:clipToPadding="false" />
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Player Controls (Bottom) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/playerControlsCard"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:padding="8dp"
-        android:background="#4CAF50"
-        app:layout_constraintBottom_toTopOf="@id/playerHandRecyclerView"
+        android:layout_height="100dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        app:cardBackgroundColor="#059669"
+        app:layout_constraintBottom_toTopOf="@id/playerHandArea"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Mana (Left Side) -->
-        <TextView
-            android:id="@+id/playerManaText"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Mana: 1/1"
-            android:textColor="@android:color/white"
-            android:textStyle="bold"
-            android:gravity="start|center_vertical"/>
-
-        <!-- Player Hero (Center) -->
         <LinearLayout
-            android:id="@+id/playerHeroArea"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
             android:orientation="horizontal"
-            android:padding="4dp">
+            android:gravity="center_vertical"
+            android:padding="16dp">
 
+            <!-- Player Hero Portrait -->
             <ImageView
                 android:id="@+id/playerHeroImage"
-                android:layout_width="50dp"
-                android:layout_height="50dp"
+                android:layout_width="68dp"
+                android:layout_height="68dp"
+                android:layout_marginEnd="16dp"
                 android:src="@drawable/ic_hero_player"
-                android:background="@drawable/hero_frame"/>
+                android:background="@drawable/hero_frame" />
 
-            <TextView
-                android:id="@+id/playerHeroHealth"
+            <!-- Player Info -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/playerHeroName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Your Hero"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@android:color/white" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="4dp">
+
+                    <TextView
+                        android:id="@+id/playerHeroHealth"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="❤️ 30"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="@android:color/white"
+                        android:layout_marginEnd="16dp" />
+
+                    <TextView
+                        android:id="@+id/playerManaText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="💎 10/10"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#60A5FA" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+            <!-- Control Buttons -->
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Health: 30/30"
-                android:textColor="@android:color/white"
-                android:textStyle="bold"
-                android:textSize="12sp"
-                android:layout_marginStart="8dp"/>
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <!-- Hero Power Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/heroPowerButton"
+                    android:layout_width="80dp"
+                    android:layout_height="36dp"
+                    android:text="Power"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="#7C3AED"
+                    app:cornerRadius="18dp"
+                    android:layout_marginBottom="4dp" />
+
+                <!-- End Turn Button -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/endTurnButton"
+                    android:layout_width="80dp"
+                    android:layout_height="36dp"
+                    android:text="End Turn"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    app:backgroundTint="#DC2626"
+                    app:cornerRadius="18dp" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
-        <!-- Buttons (Right Side) -->
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="horizontal"
-            android:gravity="end|center_vertical">
+    </androidx.cardview.widget.CardView>
 
-            <Button
-                android:id="@+id/heroPowerButton"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:text="Hero Power"
-                android:textSize="11sp"
-                android:layout_marginEnd="4dp"
-                android:minWidth="80dp"/>
+    <!-- Hand Toggle Button -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/handToggleButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:src="@drawable/ic_cards"
+        app:backgroundTint="#1F2937"
+        app:tint="@android:color/white"
+        app:fabSize="mini"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/playerControlsCard" />
 
-            <Button
-                android:id="@+id/endTurnButton"
-                android:layout_width="wrap_content"
-                android:layout_height="36dp"
-                android:text="End Turn"
-                android:textSize="11sp"
-                android:backgroundTint="#FF5722"
-                android:minWidth="80dp"/>
-
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <!-- Player Hand -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/playerHandRecyclerView"
+    <!-- Player Hand Area (Toggleable) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/playerHandArea"
         android:layout_width="0dp"
-        android:layout_height="100dp"
-        android:orientation="horizontal"
-        android:padding="4dp"
-        android:background="#66BB6A"
+        android:layout_height="120dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="6dp"
+        app:cardBackgroundColor="#1E40AF"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Your Hand (Max 5 Cards)"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:layout_marginBottom="4dp" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/playerHandRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:clipToPadding="false" />
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- Loading Overlay -->
+    <FrameLayout
+        android:id="@+id/loadingOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#80000000"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="@android:color/white">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:padding="24dp">
+
+                <ProgressBar
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:indeterminateTint="#1E40AF" />
+
+                <TextView
+                    android:id="@+id/loadingText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Processing turn..."
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="#374151"
+                    android:layout_marginTop="16dp" />
+
+            </LinearLayout>
+
+        </androidx.cardview.widget.CardView>
+
+    </FrameLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

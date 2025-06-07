@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!--
+        Set a transparent background color.
+        This allows the border to be used as an overlay on top of your card's
+        existing content without hiding it.
+    -->
+    <solid android:color="@android:color/transparent" />
+
+    <!--
+        Define the border's properties.
+        - android:width sets the thickness of the border line.
+        - android:color sets the color of the border. This gold color is
+          great for indicating that a card is selected.
+    -->
+    <stroke
+        android:width="3dp"
+        android:color="#FFD700" />
+
+    <!--
+        Define the corner radius.
+        This should match the corner radius of your CardView to ensure
+        the border aligns perfectly.
+    -->
+    <corners android:radius="12dp" />
+
+</shape>
