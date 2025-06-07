@@ -23,6 +23,9 @@ class MainMenuFragment : Fragment(R.layout.fragment_main_menu) {
         view.findViewById<Button>(R.id.btnDeckManager).setOnClickListener {
             findNavController().navigate(R.id.action_mainMenuFragment_to_cardManagementFragment)
         }
+        view.findViewById<Button>(R.id.btnDeckBuilder).setOnClickListener {
+            findNavController().navigate(R.id.action_mainMenu_to_deckBuilder)
+        }
 
         // Initialize default data if needed
         lifecycleScope.launch {

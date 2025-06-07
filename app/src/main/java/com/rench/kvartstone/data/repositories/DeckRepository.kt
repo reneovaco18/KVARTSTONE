@@ -41,6 +41,12 @@ class DeckRepository(private val context: Context) {
             emptyList()
         }
     }
+    // Add this method to your existing DeckRepository class
+    // Add this method to your DeckRepository class
+    suspend fun insertDeck(deck: DeckEntity) {
+        deckDao.insertDeck(deck)
+    }
+
 
     private fun cardIdsToJson(cardIds: List<Int>): String {
         val jsonArray = JSONArray()

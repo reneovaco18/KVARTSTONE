@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
     app:startDestination="@id/splashFragment">
 
@@ -12,6 +13,21 @@
             android:id="@+id/action_splashFragment_to_mainMenuFragment"
             app:destination="@id/mainMenuFragment" />
     </fragment>
+    <!-- Add to nav_graph.xml -->
+    <fragment
+        android:id="@+id/deckBuilderFragment"
+        android:name="com.rench.kvartstone.ui.deckbuilder.DeckBuilderFragment"
+        android:label="Deck Builder"
+        tools:layout="@layout/fragment_deck_builder">
+        <argument
+            android:name="deckId"
+            android:defaultValue="-1"
+            app:argType="integer" />
+    </fragment>
+
+    <action
+        android:id="@+id/action_mainMenu_to_deckBuilder"
+        app:destination="@id/deckBuilderFragment" />
 
     <fragment
         android:id="@+id/mainMenuFragment"
