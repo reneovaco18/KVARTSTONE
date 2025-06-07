@@ -238,7 +238,8 @@
         app:cardBackgroundColor="#059669"
         app:layout_constraintTop_toBottomOf="@id/enemyBoardCard"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/deckArea">
+        app:layout_constraintEnd_toStartOf="@id/deckArea"
+        app:layout_constraintBottom_toTopOf="@id/playerHandArea">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -267,111 +268,110 @@
 
     </androidx.cardview.widget.CardView>
 
-    <!-- Player Controls (Bottom) -->
+    <!-- Player Controls (BOTTOM RIGHT CORNER ONLY) -->
     <androidx.cardview.widget.CardView
         android:id="@+id/playerControlsCard"
-        android:layout_width="0dp"
-        android:layout_height="100dp"
-        android:layout_marginStart="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
         app:cardBackgroundColor="#059669"
-        app:layout_constraintBottom_toTopOf="@id/playerHandArea"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/playerHandArea">
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:padding="16dp">
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="12dp">
 
-            <!-- Player Hero Portrait -->
-            <ImageView
-                android:id="@+id/playerHeroImage"
-                android:layout_width="68dp"
-                android:layout_height="68dp"
-                android:layout_marginEnd="16dp"
-                android:src="@drawable/ic_hero_player"
-                android:background="@drawable/hero_frame" />
-
-            <!-- Player Info -->
+            <!-- Compact Hero Section -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical">
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
 
-                <TextView
-                    android:id="@+id/playerHeroName"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Your Hero"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:textColor="@android:color/white" />
+                <!-- Smaller Player Hero Portrait -->
+                <ImageView
+                    android:id="@+id/playerHeroImage"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="8dp"
+                    android:src="@drawable/ic_hero_player"
+                    android:background="@drawable/hero_frame" />
 
+                <!-- Condensed Player Info -->
                 <LinearLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="4dp">
+                    android:orientation="vertical"
+                    android:gravity="center">
 
                     <TextView
                         android:id="@+id/playerHeroHealth"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="❤️ 30"
-                        android:textSize="16sp"
+                        android:text="❤️30"
+                        android:textSize="14sp"
                         android:textStyle="bold"
-                        android:textColor="@android:color/white"
-                        android:layout_marginEnd="16dp" />
+                        android:textColor="@android:color/white" />
 
                     <TextView
                         android:id="@+id/playerManaText"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="💎 10/10"
-                        android:textSize="16sp"
+                        android:text="💎10/10"
+                        android:textSize="12sp"
                         android:textStyle="bold"
-                        android:textColor="#60A5FA" />
+                        android:textColor="#60A5FA"
+                        android:layout_marginTop="2dp" />
 
                 </LinearLayout>
 
             </LinearLayout>
 
-            <!-- Control Buttons -->
+            <!-- Compact Action Buttons Row -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
+                android:orientation="horizontal"
                 android:gravity="center">
 
-                <!-- Hero Power Button -->
+                <!-- Hero Power Button (Purple Circle) -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/heroPowerButton"
-                    android:layout_width="80dp"
-                    android:layout_height="36dp"
-                    android:text="Power"
-                    android:textSize="12sp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:text="⚡"
+                    android:textSize="16sp"
                     android:textStyle="bold"
                     app:backgroundTint="#7C3AED"
-                    app:cornerRadius="18dp"
-                    android:layout_marginBottom="4dp" />
+                    app:cornerRadius="20dp"
+                    android:layout_marginEnd="6dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp" />
 
-                <!-- End Turn Button -->
+                <!-- End Turn Button (Red Circle) -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/endTurnButton"
-                    android:layout_width="80dp"
-                    android:layout_height="36dp"
-                    android:text="End Turn"
-                    android:textSize="12sp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:text="➤"
+                    android:textSize="16sp"
                     android:textStyle="bold"
                     app:backgroundTint="#DC2626"
-                    app:cornerRadius="18dp" />
+                    app:cornerRadius="20dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minWidth="0dp"
+                    android:minHeight="0dp" />
 
             </LinearLayout>
 
@@ -390,8 +390,8 @@
         app:backgroundTint="#1F2937"
         app:tint="@android:color/white"
         app:fabSize="mini"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/playerControlsCard" />
+        app:layout_constraintEnd_toStartOf="@id/playerControlsCard"
+        app:layout_constraintBottom_toTopOf="@id/playerHandArea" />
 
     <!-- Player Hand Area (Toggleable) -->
     <androidx.cardview.widget.CardView
