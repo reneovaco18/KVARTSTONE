@@ -117,49 +117,39 @@ class CardRepository(private val context: Context) {
     }
 
     private fun entityToCard(entity: CardEntity): Card {
-        val resourceId = context.resources.getIdentifier(
-            entity.imageResName, "drawable", context.packageName
-        )
-
         return when (entity.type.lowercase()) {
             "minion" -> MinionCard(
-                id = entity.id,
-                name = entity.name,
-                manaCost = entity.manaCost,
-                imageRes = if (resourceId != 0) resourceId else R.drawable.ic_card_minion_generic,
-                imageUri = entity.imageUri,
-                attack = entity.attack ?: 0,
-                maxHealth = entity.health ?: 1
+                id         = entity.id,
+                name       = entity.name,
+                manaCost   = entity.manaCost,
+                imageResName = entity.imageResName.ifBlank { "ic_card_minion_generic" },
+                imageUri   = entity.imageUri,
+                attack     = entity.attack ?: 0,
+                maxHealth  = entity.health ?: 1
             )
-            "spell" -> SpellCard(
-                id = entity.id,
-                name = entity.name,
-                manaCost = entity.manaCost,
-                imageRes = if (resourceId != 0) resourceId else R.drawable.ic_card_spell_generic,
-                imageUri = entity.imageUri,
-                effect = createSpellEffect(entity.effect),
+            "spell"  -> SpellCard(
+                id         = entity.id,
+                name       = entity.name,
+                manaCost   = entity.manaCost,
+                imageResName = entity.imageResName.ifBlank { "ic_card_spell_generic" },
+                imageUri   = entity.imageUri,
+                effect     = createSpellEffect(entity.effect),
                 targetingType = determineTargetingType(entity.effect),
-                description = entity.description
+                description   = entity.description
             )
-            else -> throw IllegalArgumentException("Unknown card type: ${entity.type}")
+            else -> throw IllegalArgumentException("Unknown card type ${entity.type}")
         }
     }
-
-    private fun createSpellEffect(effectString: String?): (GameEngineInterface, List<Any>) -> Unit {
-        return when (effectString?.lowercase()) {
-            "deal 2 damage" -> { gameEngine, targets ->
-                if (targets.isNotEmpty() && targets[0] is MinionCard) {
-                    (targets[0] as MinionCard).takeDamage(2)
-                }
+    private fun createSpellEffect(effect: String?): (GameEngineInterface, List<Any>) -> Unit =
+        when (effect?.lowercase()) {
+            "deal 2 damage" -> { _, targets ->
+                (targets.firstOrNull() as? MinionCard)?.takeDamage(2)
             }
-            "deal 1 damage" -> { gameEngine, targets ->
-                if (targets.isNotEmpty() && targets[0] is MinionCard) {
-                    (targets[0] as MinionCard).takeDamage(1)
-                }
+            "deal 1 damage" -> { _, targets ->
+                (targets.firstOrNull() as? MinionCard)?.takeDamage(1)
             }
-            else -> { _, _ -> } // No effect
+            else -> { _, _ -> }
         }
-    }
 
     private fun determineTargetingType(effectString: String?): TargetingType {
         return when (effectString?.lowercase()) {

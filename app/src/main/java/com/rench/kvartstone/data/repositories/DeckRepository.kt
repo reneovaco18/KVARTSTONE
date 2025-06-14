@@ -13,6 +13,7 @@ import org.json.JSONException
 import com.rench.kvartstone.data.entities.CardEntity
 // FIXED: Now uses actual card IDs from database instead of hardcoded values
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 class DeckRepository(private val context: Context) {
     private val deckDao = AppDatabase.getDatabase(context).deckDao()
@@ -105,13 +106,8 @@ class DeckRepository(private val context: Context) {
     }
 
     suspend fun insertDeck(deck: DeckEntity): Long {
-        return try {
-            val result = deckDao.insertDeck(deck)
-            Log.d("DeckRepository", "Inserted deck '${deck.name}' with ID: $result")
-            result
-        } catch (e: Exception) {
-            Log.e("DeckRepository", "Error inserting deck: ${e.message}")
-            -1L
+        return deckDao.insertDeck(deck).also { id ->
+            if (id > 0) Log.d("DeckRepo", "Deck inserted with ID: $id")
         }
     }
 
@@ -199,62 +195,61 @@ class DeckRepository(private val context: Context) {
 
     suspend fun initializeDefaultDecks() {
         try {
-            if (deckDao.getDeckCount() > 0) {
-                Log.d("DeckRepository", "Decks already exist, skipping initialization.")
-                return
-            }
+            if (deckDao.getDeckCount() > 0) return
 
-            // CORRECTED: Collect the list from the Flow before using it
-            val cardEntities: List<CardEntity> = withContext(Dispatchers.IO) {
-                AppDatabase.getDatabase(context).cardDao().getAllCards().first()
-            }
-
-            // CORRECTED: This check now correctly operates on a List
-            if (cardEntities.isNullOrEmpty()) {
-                Log.w("DeckRepository", "No cards available for deck creation.")
-                return
-            }
-
-            // CORRECTED: This now correctly maps over a List, not a Flow
-            val availableCardIds = cardEntities.map { it.id }
-
-            // These function calls now receive the correct List<Int> type
-            val basicDeckCardIds = createBalancedDeck(availableCardIds, "basic")
-            val aggressiveDeckCardIds = createBalancedDeck(availableCardIds, "aggressive")
+            // Get ALL card IDs from database
+            val cardIds = cardRepository.getAllCardsAsEntity()
+                .firstOrNull()
+                ?.map { it.id }
+                ?: emptyList()
 
             val defaultDecks = listOf(
                 DeckEntity(
-                    id = 0,
                     name = "Basic Deck",
-                    description = "A balanced starter deck with various card types",
+                    description = "Balanced starter deck",
                     heroClass = "neutral",
-                    cardIds = cardIdsToJson(basicDeckCardIds),
-                    isCustom = false,
-                    createdAt = System.currentTimeMillis()
+                    cardIds = JSONArray(cardIds.take(30)).toString(),
+                    isCustom = false
                 ),
                 DeckEntity(
-                    id = 0,
                     name = "Aggressive Deck",
-                    description = "Fast and aggressive deck focused on quick victories",
+                    description = "Fast combat deck",
                     heroClass = "warrior",
-                    cardIds = cardIdsToJson(aggressiveDeckCardIds),
-                    isCustom = false,
-                    createdAt = System.currentTimeMillis()
+                    cardIds = JSONArray(cardIds.filter { it % 2 == 0 }.take(30)).toString(),
+                    isCustom = false
                 )
             )
 
-            for (deck in defaultDecks) {
-                insertDeck(deck)
-            }
-
-            Log.d("DeckRepository", "Default decks initialized.")
+            deckDao.insertDecks(defaultDecks)
         } catch (e: Exception) {
-            Log.e("DeckRepository", "Error during deck initialization: ${e.message}", e)
+            Log.e("DeckRepository", "Error initializing default decks", e)
         }
     }
 
 
 
+    // In DeckRepository.kt
+
+    suspend fun removeCardFromAllDecks(cardId: Int) {
+        withContext(Dispatchers.IO) {
+            val allDecks = deckDao.getAllDecks().first() // Get a snapshot
+            for (deckEntity in allDecks) {
+                val cardIds = JSONArray(deckEntity.cardIds)
+                val updatedIds = JSONArray()
+                var changed = false
+                for (i in 0 until cardIds.length()) {
+                    if (cardIds.getInt(i) != cardId) {
+                        updatedIds.put(cardIds.getInt(i))
+                    } else {
+                        changed = true
+                    }
+                }
+                if (changed) {
+                    updateDeck(deckEntity.copy(cardIds = updatedIds.toString()))
+                }
+            }
+        }
+    }
 
     /**
      * Create a balanced 30-card deck from available card IDs
@@ -266,7 +261,7 @@ class DeckRepository(private val context: Context) {
         }
 
         val deckCards = mutableListOf<Int>()
-        val targetSize = 30
+        val targetSize = 10
 
         when (deckType) {
             "basic" -> {

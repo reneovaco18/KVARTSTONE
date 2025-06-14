@@ -2,31 +2,24 @@
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/minionCardView"
     android:layout_width="80dp"
     android:layout_height="match_parent"
     android:layout_margin="4dp"
     app:cardCornerRadius="8dp"
-    app:cardElevation="2dp"
+    app:cardElevation="4dp"
     app:cardBackgroundColor="@color/minion_brown">
 
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
+        <!-- Layer 1: Base Content (Image and Stats) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="vertical"
             android:padding="4dp">
-
-            <!-- Divine shield indicator (overlay) -->
-            <View
-                android:id="@+id/divineShieldIndicator"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:background="@drawable/divine_shield_overlay"
-                android:visibility="gone"/>
 
             <ImageView
                 android:id="@+id/minionImage"
@@ -64,13 +57,29 @@
 
         </LinearLayout>
 
-        <!-- Summoning sickness indicator (overlay) -->
+        <!-- Layer 2: Divine Shield Overlay -->
+        <View
+            android:id="@+id/divineShieldIndicator"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/divine_shield_overlay"
+            android:visibility="gone"/>
+
+        <!-- Layer 3: Summoning Sickness / Has Attacked Overlay -->
         <View
             android:id="@+id/summonsicknessIndicator"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@drawable/summoning_sickness_overlay"
             android:visibility="gone"/>
+
+        <!-- Layer 4: Highlight Border (for selection and targeting) -->
+        <View
+            android:id="@+id/highlightBorder"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:visibility="gone"
+            android:background="@drawable/border_can_attack" />
 
     </FrameLayout>
 </androidx.cardview.widget.CardView>

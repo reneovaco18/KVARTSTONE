@@ -17,13 +17,14 @@ import com.rench.kvartstone.domain.SpellCard
 class CardHandAdapter(
     private val onCardClick: (Int) -> Unit,
     private val canPlayCard: (Int) -> Boolean,
+    private val onCardLongClick: (Card) -> Unit, // <-- NEW
     private val isCardSelected: (Int) -> Boolean
 ) : ListAdapter<Card, CardHandAdapter.CardViewHolder>(CardDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_card_hand, parent, false)
-        return CardViewHolder(view, onCardClick, canPlayCard, isCardSelected)
+        return CardViewHolder(view, onCardClick, onCardLongClick, canPlayCard, isCardSelected)
     }
 
     override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
@@ -33,9 +34,11 @@ class CardHandAdapter(
     class CardViewHolder(
         itemView: View,
         private val onCardClick: (Int) -> Unit,
+        private val onCardLongClick: (Card) -> Unit, // <-- NEW
         private val canPlayCard: (Int) -> Boolean,
         private val isCardSelected: (Int) -> Boolean
     ) : RecyclerView.ViewHolder(itemView) {
+
 
         private val cardView: CardView = itemView as CardView
         private val cardImage: ImageView = itemView.findViewById(R.id.cardImage)
@@ -46,12 +49,25 @@ class CardHandAdapter(
 
         init {
             itemView.setOnClickListener {
-                onCardClick(adapterPosition)
+                if (adapterPosition != RecyclerView.NO_POSITION) {
+                    onCardClick(adapterPosition)
+                }
+            }
+
+            // Set up the long click listener
+            itemView.setOnLongClickListener {
+                currentCard?.let { card ->
+                    onCardLongClick(card)
+                }
+                true // Consume the event
             }
         }
-
+        private var currentCard: Card? = null
         fun bind(card: Card, position: Int) {
-            cardImage.setImageResource(card.imageRes)
+            this.currentCard = card // Store the card
+            val imageResId = itemView.context.resources.getIdentifier(card.imageResName, "drawable", itemView.context.packageName)
+            cardImage.setImageResource(if (imageResId != 0) imageResId else R.drawable.ic_card_generic)
+
             cardName.text = card.name
             cardMana.text = card.manaCost.toString()
 

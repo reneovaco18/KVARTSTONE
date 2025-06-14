@@ -111,6 +111,7 @@ class ImprovedGameEngine(
 
     // Add the missing attack method that implements the interface
     override fun attack(attacker: MinionCard, target: Any): Boolean {
+        // The existing performAttack method handles this perfectly.
         return performAttack(attacker, target)
     }
 
@@ -293,16 +294,18 @@ class ImprovedGameEngine(
         attacker.hasAttackedThisTurn = true
         processEffectQueues()
         cleanupBoard()
+        checkGameEnd()
         return true
     }
 
     private fun queueDeathrattle(minion: MinionCard) {
         minion.deathrattleEffect?.let { effect ->
             deathrattleQueue.add {
-                effect.invoke(this)
+                effect.invoke(this, emptyList())   // ← second parameter added
             }
         }
     }
+
 
     private fun processEffectQueues() {
         // Process battlecries first

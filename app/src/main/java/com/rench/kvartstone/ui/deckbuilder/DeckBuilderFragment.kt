@@ -132,8 +132,8 @@ class DeckBuilderFragment : Fragment(R.layout.fragment_deck_builder) {
         }
 
         viewModel.deckCount.observe(viewLifecycleOwner) { count ->
-            deckCountText.text = "$count/30 cards"
-            saveDeckButton.isEnabled = count == 30
+            deckCountText.text = "$count/10 cards"
+            saveDeckButton.isEnabled = count == 10
         }
 
         viewModel.deckName.observe(viewLifecycleOwner) { name ->

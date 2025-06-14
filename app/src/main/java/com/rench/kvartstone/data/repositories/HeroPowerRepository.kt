@@ -66,19 +66,23 @@ class HeroPowerRepository(private val context: Context) {
         }
 
     private fun entityToDomain(entity: HeroPowerEntity): HeroPower {
-        val resourceId = context.resources.getIdentifier(
-            entity.imageResName, "drawable", context.packageName
-        )
-
         return HeroPower(
-            id = entity.id,
-            name = entity.name,
+            id          = entity.id,
+            name        = entity.name,
             description = entity.description,
-            cost = entity.manaCost,
-            imageRes = if (resourceId != 0) resourceId else android.R.drawable.ic_menu_close_clear_cancel,
-            effect = createHeroPowerEffect(entity.effectType, entity.effectValue, entity.targetType)
+            cost        = entity.manaCost,
+
+            // ① use the **string** that is already stored in the DB
+            imageResName = entity.imageResName,               // <- changed
+
+            effect      = createHeroPowerEffect(
+                entity.effectType,
+                entity.effectValue,
+                entity.targetType
+            )
         )
     }
+
 
     private fun createHeroPowerEffect(type: String, value: Int, targetType: String): (GameEngineInterface, Any?) -> Unit {
         return when (type.lowercase()) {
@@ -217,33 +221,25 @@ class HeroPowerRepository(private val context: Context) {
         }
     }
 
-    private fun createDefaultPlayerHeroPower(): HeroPower {
-        return HeroPower(
-            id = 1,
-            name = "Fireblast",
-            description = "Deal 1 damage to any character",
-            cost = 2,
-            imageRes = android.R.drawable.ic_menu_close_clear_cancel,
-            effect = { engine, target ->
-                try {
-                    when (target) {
-                        is MinionCard -> target.takeDamage(1)
-                        is Hero -> target.takeDamage(1)
-                        else -> {
-                            // Default: damage enemy hero
-                            if (engine.currentTurn == Turn.PLAYER) {
-                                engine.botHero.takeDamage(1)
-                            } else {
-                                engine.playerHero.takeDamage(1)
-                            }
-                        }
-                    }
-                } catch (e: Exception) {
-                    Log.e("HeroPowerRepository", "Error with default hero power: ${e.message}")
-                }
+    private fun createDefaultPlayerHeroPower(): HeroPower = HeroPower(
+        id          = 1,
+        name        = "Fireblast",
+        description = "Deal 1 damage to any character",
+        cost        = 2,
+
+        // ② pass a drawable **name**, not an int
+        imageResName = "ic_menu_close_clear_cancel",          // <- changed
+
+        effect       = { engine, target ->
+            when (target) {
+                is MinionCard -> target.takeDamage(1)
+                is Hero       -> target.takeDamage(1)
+                else -> if (engine.currentTurn == Turn.PLAYER)
+                    engine.botHero.takeDamage(1)
+                else engine.playerHero.takeDamage(1)
             }
-        )
-    }
+        }
+    )
 
     suspend fun initializeDefaultHeroPowers() {
         try {

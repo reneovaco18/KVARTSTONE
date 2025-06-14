@@ -9,6 +9,7 @@ import com.rench.kvartstone.data.entities.CardEntity
 import com.rench.kvartstone.data.entities.DeckEntity
 import com.rench.kvartstone.data.repositories.CardRepository
 import com.rench.kvartstone.data.repositories.DeckRepository
+import com.rench.kvartstone.data.AppDatabase
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 
@@ -48,14 +49,25 @@ class DeckBuilderViewModel(application: Application) : AndroidViewModel(applicat
     private var currentDeckId: Int? = null
 
     companion object {
-        private const val MAX_DECK_SIZE = 30
+        private const val MAX_DECK_SIZE = 10
         private const val MAX_CARD_COPIES = 2
     }
 
     init {
-        loadAllCards()
+        loadAllCardEntities()
     }
-
+    private fun loadAllCardEntities() {
+        viewModelScope.launch {
+            try {
+                cardRepository.getAllCardsAsEntity().collect { entities ->
+                    allCards = entities
+                    _availableCards.value = allCards
+                }
+            } catch (e: Exception) {
+                _message.value = "Failed to load available cards: ${e.message}"
+            }
+        }
+    }
     private fun loadAllCards() {
         viewModelScope.launch {
             try {
@@ -180,37 +192,45 @@ class DeckBuilderViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     fun saveDeck() {
-        val name = _deckName.value ?: "New Deck"
-        val totalCards = currentDeckCards.values.sum()
-
-        if (totalCards != MAX_DECK_SIZE) {
-            _message.value = "Deck must have exactly $MAX_DECK_SIZE cards"
+        if (deckCount.value != MAX_DECK_SIZE) {
+            _message.value = "Deck must contain exactly $MAX_DECK_SIZE cards."
             return
         }
 
         viewModelScope.launch {
             try {
-                val cardIds = mutableListOf<Int>()
-                currentDeckCards.forEach { (cardId, count) ->
-                    repeat(count) { cardIds.add(cardId) }
-                }
-
+                val cardIds = currentDeckCards.flatMap { (id, count) -> List(count) { id } }
                 val deckEntity = DeckEntity(
-                    id = currentDeckId ?: 0, // 0 for new deck, will be auto-generated
-                    name = name,
-                    description = "Custom deck with ${currentDeckCards.size} unique cards",
-                    heroClass = "neutral",
+                    id = currentDeckId ?: 0, // Use 0 for new decks so Room auto-generates the ID
+                    name = deckName.value ?: "Unnamed Deck",
+                    description = "A custom deck.",
+                    heroClass = "neutral", // You can enhance this later
                     cardIds = JSONArray(cardIds).toString(),
                     isCustom = true,
                     createdAt = System.currentTimeMillis()
                 )
 
-                deckRepository.insertDeck(deckEntity)
-                _message.value = "Deck '$name' saved successfully!"
-                _deckSaved.value = true
-
+                if (currentDeckId == null) {
+                    // This is a NEW deck, insert it
+                    val newId = deckRepository.insertDeck(deckEntity)
+                    if (newId > 0) {
+                        _message.value = "Deck '${deckEntity.name}' saved!"
+                        _deckSaved.value = true
+                    } else {
+                        _message.value = "Failed to save new deck."
+                    }
+                } else {
+                    // This is an EXISTING deck, update it
+                    val success = deckRepository.updateDeck(deckEntity)
+                    if (success) {
+                        _message.value = "Deck '${deckEntity.name}' updated!"
+                        _deckSaved.value = true
+                    } else {
+                        _message.value = "Failed to update deck."
+                    }
+                }
             } catch (e: Exception) {
-                _message.value = "Failed to save deck: ${e.message}"
+                _message.value = "Error saving deck: ${e.message}"
             }
         }
     }
@@ -219,22 +239,18 @@ class DeckBuilderViewModel(application: Application) : AndroidViewModel(applicat
         currentDeckId = deckId
         viewModelScope.launch {
             try {
-                // FIX: Use a null-safe call (`let`) to handle the nullable Deck?
                 deckRepository.getDeckById(deckId)?.let { deck ->
-                    // This block will only execute if 'deck' is not null.
                     _deckName.value = deck.name
-
                     currentDeckCards.clear()
 
+                    // Reconstruct the map from the list of cards
                     deck.cards.forEach { card ->
-                        val cardId = card.id
-                        currentDeckCards[cardId] = (currentDeckCards[cardId] ?: 0) + 1
+                        currentDeckCards[card.id] = (currentDeckCards[card.id] ?: 0) + 1
                     }
 
-                    updateDeckComposition()
-                    _message.value = "Loaded deck '${deck.name}'"
+                    updateDeckComposition() // Update the UI
+                    _message.value = "Editing deck: '${deck.name}'"
                 } ?: run {
-                    // This block executes if 'deck' is null.
                     _message.value = "Could not find deck with ID: $deckId"
                 }
             } catch (e: Exception) {

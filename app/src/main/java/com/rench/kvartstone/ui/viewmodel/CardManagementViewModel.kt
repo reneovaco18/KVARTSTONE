@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.rench.kvartstone.data.entities.CardEntity
 import com.rench.kvartstone.data.repositories.CardRepository
+import com.rench.kvartstone.data.repositories.DeckRepository
 import kotlinx.coroutines.launch
 
 class CardManagementViewModel(application: Application) : AndroidViewModel(application) {
@@ -16,7 +17,7 @@ class CardManagementViewModel(application: Application) : AndroidViewModel(appli
 
     private val _cards = MutableLiveData<List<CardEntity>>()
     val cards: LiveData<List<CardEntity>> = _cards
-
+    private val deckRepository = DeckRepository(application)
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
 
@@ -135,8 +136,10 @@ class CardManagementViewModel(application: Application) : AndroidViewModel(appli
             try {
                 val success = cardRepository.deleteCard(card)
                 if (success) {
+                    // Also remove this card from any decks it's in
+                    deckRepository.removeCardFromAllDecks(card.id)
                     _message.value = "Card '${card.name}' deleted successfully"
-                    loadAllCards()
+                    // The flow will update the card list automatically
                 }
             } catch (e: Exception) {
                 _message.value = "Failed to delete card: ${e.message}"

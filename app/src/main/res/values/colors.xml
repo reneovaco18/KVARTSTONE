@@ -25,7 +25,9 @@
     <color name="spell_in_deck">#60A5FA</color> <!-- blue -->
     <!-- Deck Builder Card Colors -->
     <!-- Card Colors -->
-
+    <color name="can_attack_green">#4CAF50</color>
+    <color name="selected_attacker_blue">#2196F3</color>
+    <color name="valid_target_red">#F44336</color>
 
 
     <!-- Badge Colors -->

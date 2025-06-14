@@ -16,6 +16,7 @@ class MinionBoardAdapter(
     private val onMinionClick: (Int) -> Unit,
     private val canAttackWithMinion: (Int) -> Boolean = { false },
     private val isMinionSelected: (Int) -> Boolean = { false },
+    private val isValidTarget: (MinionCard) -> Boolean = { false },
     private val isPlayerBoard: Boolean = true
 ) : ListAdapter<MinionCard, MinionBoardAdapter.MinionViewHolder>(MinionDiffCallback()) {
 
@@ -27,6 +28,7 @@ class MinionBoardAdapter(
             onMinionClick,
             canAttackWithMinion,
             isMinionSelected,
+            isValidTarget,
             isPlayerBoard
         )
     }
@@ -40,6 +42,7 @@ class MinionBoardAdapter(
         private val onMinionClick: (Int) -> Unit,
         private val canAttackWithMinion: (Int) -> Boolean,
         private val isMinionSelected: (Int) -> Boolean,
+        private val isValidTarget: (MinionCard) -> Boolean,
         private val isPlayerBoard: Boolean
     ) : RecyclerView.ViewHolder(itemView) {
 
@@ -49,46 +52,59 @@ class MinionBoardAdapter(
         private val minionHealth: TextView = itemView.findViewById(R.id.minionHealth)
         private val divineShieldIndicator: View? = itemView.findViewById(R.id.divineShieldIndicator)
         private val summonsicknessIndicator: View? = itemView.findViewById(R.id.summonsicknessIndicator)
+        private val highlightBorder: View = itemView.findViewById(R.id.highlightBorder)
 
         init {
             itemView.setOnClickListener {
-                onMinionClick(adapterPosition)
+                if (adapterPosition != RecyclerView.NO_POSITION) {
+                    onMinionClick(adapterPosition)
+                }
             }
         }
 
         fun bind(minion: MinionCard, position: Int) {
-            minionImage.setImageResource(minion.imageRes)
+            val imageResId = itemView.context.resources.getIdentifier(minion.imageResName, "drawable", itemView.context.packageName)
+            minionImage.setImageResource(if (imageResId != 0) imageResId else R.drawable.ic_card_minion_generic)
             minionAttack.text = minion.attack.toString()
             minionHealth.text = minion.currentHealth.toString()
+            highlightBorder.visibility = View.GONE // Hide border by default
 
-            // Visual indicators
             val canAttack = if (isPlayerBoard) canAttackWithMinion(position) else false
-            val selected = if (isPlayerBoard) isMinionSelected(position) else false
+            val isSelected = if (isPlayerBoard) isMinionSelected(position) else false
+            val isTarget = isValidTarget(minion)
+            val cannotAct = minion.summoned || (minion.hasAttackedThisTurn && isPlayerBoard)
+            itemView.alpha = if (cannotAct) 0.6f else 1.0f
+
+            if (isPlayerBoard) {
+                // Friendly minion highlighting
+                if (isSelected) {
+                    highlightBorder.visibility = View.VISIBLE
+                    highlightBorder.setBackgroundResource(R.drawable.border_selected_attacker)
+                } else if (canAttack) {
+                    highlightBorder.visibility = View.VISIBLE
+                    highlightBorder.setBackgroundResource(R.drawable.border_can_attack)
+                }
+            } else {
+                // Enemy minion highlighting
+                if (isTarget) {
+                    highlightBorder.visibility = View.VISIBLE
+                    highlightBorder.setBackgroundResource(R.drawable.border_valid_target)
+                }
+            }
 
             // Divine Shield visual effect
+            divineShieldIndicator?.visibility = if (minion.hasDivineShield) View.VISIBLE else View.GONE
             if (minion.hasDivineShield) {
-                divineShieldIndicator?.visibility = View.VISIBLE
-                cardView.setCardBackgroundColor(
-                    itemView.context.getColor(R.color.divine_shield_gold)
-                )
+                cardView.setCardBackgroundColor(itemView.context.getColor(R.color.divine_shield_gold))
             } else {
-                divineShieldIndicator?.visibility = View.GONE
-                cardView.setCardBackgroundColor(
-                    itemView.context.getColor(R.color.minion_brown)
-                )
+                cardView.setCardBackgroundColor(itemView.context.getColor(R.color.minion_brown))
             }
 
             // Summoning sickness or has attacked
-            if (minion.summoned || minion.hasAttackedThisTurn) {
-                summonsicknessIndicator?.visibility = View.VISIBLE
-                itemView.alpha = 0.6f
-            } else {
-                summonsicknessIndicator?.visibility = View.GONE
-                itemView.alpha = if (canAttack || !isPlayerBoard) 1.0f else 0.8f
-            }
+            summonsicknessIndicator?.visibility = if (minion.summoned || minion.hasAttackedThisTurn) View.VISIBLE else View.GONE
 
             // Selection highlight
-            if (selected) {
+            if (isSelected) { // FIX: Use the 'isSelected' variable
                 cardView.setCardBackgroundColor(
                     itemView.context.getColor(R.color.selected_green)
                 )
@@ -117,7 +133,6 @@ class MinionBoardAdapter(
                 minionAttack.setTextColor(itemView.context.getColor(R.color.attack_red))
             }
 
-            // Clickable only if it's player's board and can attack
             itemView.isClickable = isPlayerBoard
         }
     }
