@@ -42,33 +42,10 @@ class CardManagementViewModel(application: Application) : AndroidViewModel(appli
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                cardRepository.allCards.collect { domainCards ->
-                    val entities = domainCards.map { card ->
-                        CardEntity(
-                            id = card.id,
-                            name = card.name,
-                            description = when (card) {
-                                is com.rench.kvartstone.domain.MinionCard -> "A ${card.attack}/${card.maxHealth} minion"
-                                is com.rench.kvartstone.domain.SpellCard -> card.description
-                                else -> "Unknown card type"
-                            },
-                            type = when (card) {
-                                is com.rench.kvartstone.domain.MinionCard -> "minion"
-                                is com.rench.kvartstone.domain.SpellCard -> "spell"
-                                else -> "unknown"
-                            },
-                            manaCost = card.manaCost,
-                            attack = if (card is com.rench.kvartstone.domain.MinionCard) card.attack else null,
-                            health = if (card is com.rench.kvartstone.domain.MinionCard) card.maxHealth else null,
-                            effect = null,
-                            imageResName = "ic_card_generic",
-                            rarity = "common",
-                            isCustom = false,
-                            createdAt = System.currentTimeMillis()
-                        )
-                    }
-                    originalCards = entities
-                    _cards.value = entities
+                // Use the existing method that returns CardEntity directly
+                cardRepository.getAllCardsAsEntity().collect { cardEntities ->
+                    originalCards = cardEntities
+                    refreshCurrentView()
                     _isLoading.value = false
                 }
             } catch (e: Exception) {
@@ -77,6 +54,8 @@ class CardManagementViewModel(application: Application) : AndroidViewModel(appli
             }
         }
     }
+
+
 
     fun searchCards(query: String) {
         if (query.isEmpty()) {
@@ -116,59 +95,55 @@ class CardManagementViewModel(application: Application) : AndroidViewModel(appli
     fun createCard(card: CardEntity) {
         viewModelScope.launch {
             try {
-                // Actually save to database
-                val newCard = card.copy(
-                    id = (originalCards.maxOfOrNull { it.id } ?: 0) + 1,
+                // Actually persist to database via repository
+                val insertedId = cardRepository.insertCard(card.copy(
                     isCustom = true,
                     createdAt = System.currentTimeMillis()
-                )
+                ))
 
-                // Add to original list
-                originalCards = originalCards + newCard
-
-                // Update displayed list
-                refreshCurrentView()
-
-                _message.value = "Card '${newCard.name}' created successfully"
+                if (insertedId > 0) {
+                    _message.value = "Card '${card.name}' created successfully"
+                    // Data will automatically update through Flow observation
+                } else {
+                    _message.value = "Failed to create card"
+                }
             } catch (e: Exception) {
                 _message.value = "Failed to create card: ${e.message}"
             }
         }
     }
 
+
+
     fun updateCard(card: CardEntity) {
         viewModelScope.launch {
             try {
-                // Update in original list
-                originalCards = originalCards.map {
-                    if (it.id == card.id) card else it
+                val success = cardRepository.updateCard(card)
+                if (success) {
+                    _message.value = "Card '${card.name}' updated successfully"
+                    loadAllCards()
                 }
-
-                // Update displayed list
-                refreshCurrentView()
-
-                _message.value = "Card '${card.name}' updated successfully"
             } catch (e: Exception) {
                 _message.value = "Failed to update card: ${e.message}"
             }
         }
     }
 
+
     fun deleteCard(card: CardEntity) {
         viewModelScope.launch {
             try {
-                // Remove from original list
-                originalCards = originalCards.filter { it.id != card.id }
-
-                // Update displayed list
-                refreshCurrentView()
-
-                _message.value = "Card '${card.name}' deleted successfully"
+                val success = cardRepository.deleteCard(card)
+                if (success) {
+                    _message.value = "Card '${card.name}' deleted successfully"
+                    loadAllCards()
+                }
             } catch (e: Exception) {
                 _message.value = "Failed to delete card: ${e.message}"
             }
         }
     }
+
 
     private fun refreshCurrentView() {
         // Reapply current filter

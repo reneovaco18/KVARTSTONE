@@ -1,6 +1,7 @@
 package com.rench.kvartstone.data
 
 import android.content.Context
+import android.util.Log
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
@@ -12,11 +13,17 @@ import com.rench.kvartstone.data.dao.HeroPowerDao
 import com.rench.kvartstone.data.entities.CardEntity
 import com.rench.kvartstone.data.entities.DeckEntity
 import com.rench.kvartstone.data.entities.HeroPowerEntity
-
+import com.rench.kvartstone.data.repositories.CardRepository
+import com.rench.kvartstone.data.repositories.DeckRepository
+import com.rench.kvartstone.data.repositories.HeroPowerRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 @Database(
     entities = [CardEntity::class, HeroPowerEntity::class, DeckEntity::class],
-    version = 3, // Increment version
-    exportSchema = false
+    version = 5,
+    exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun cardDao(): CardDao
@@ -26,6 +33,57 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
+        @Volatile
+        private var isInitialized = false
+        private val initializationLock = Object()
+
+        // Move the method to companion object
+        suspend fun waitForInitialization(timeoutSeconds: Int): Boolean {
+            return withContext(Dispatchers.IO) {
+                val startTime = System.currentTimeMillis()
+                val timeoutMillis = timeoutSeconds * 1000L
+
+                synchronized(initializationLock) {
+                    while (!isInitialized) {
+                        if (System.currentTimeMillis() - startTime > timeoutMillis) {
+                            return@withContext false
+                        }
+                        try {
+                            (initializationLock as Object).wait(100)
+                        } catch (e: InterruptedException) {
+                            Thread.currentThread().interrupt()
+                            return@withContext false
+                        }
+                    }
+                }
+                true
+            }
+        }
+
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Check if column exists before adding it
+                val cursor = db.query("PRAGMA table_info(cards)")
+                var columnExists = false
+
+                while (cursor.moveToNext()) {
+                    val columnName = cursor.getString(1) // Column name is at index 1
+                    if (columnName == "description") {
+                        columnExists = true
+                        break
+                    }
+                }
+                cursor.close()
+
+                if (!columnExists) {
+                    db.execSQL("ALTER TABLE cards ADD COLUMN description TEXT NOT NULL DEFAULT ''")
+                    Log.d("AppDatabase", "Added description column to cards table")
+                } else {
+                    Log.d("AppDatabase", "Description column already exists, skipping migration")
+                }
+            }
+        }
+
 
         fun getDatabase(context: Context): AppDatabase {
             return INSTANCE ?: synchronized(this) {
@@ -34,65 +92,64 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "kvartstone_database"
                 )
-                    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-                    .fallbackToDestructiveMigration() // For development only
+                    .addMigrations(MIGRATION_4_5)
+                    .addCallback(AppDatabaseCallback(context))
                     .build()
                 INSTANCE = instance
                 instance
             }
         }
 
-        private val MIGRATION_1_2 = object : Migration(1, 2) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                // Create hero_powers table
-                database.execSQL("""
-                    CREATE TABLE IF NOT EXISTS hero_powers (
-                        id INTEGER PRIMARY KEY NOT NULL,
-                        name TEXT NOT NULL,
-                        description TEXT NOT NULL,
-                        manaCost INTEGER NOT NULL,
-                        imageResName TEXT NOT NULL,
-                        effectType TEXT NOT NULL,
-                        effectValue INTEGER NOT NULL,
-                        targetType TEXT NOT NULL,
-                        isActive INTEGER NOT NULL DEFAULT 1
-                    )
-                """)
+        private class AppDatabaseCallback(
+            private val context: Context
+        ) : RoomDatabase.Callback() {
 
-                // Create decks table
-                database.execSQL("""
-                    CREATE TABLE IF NOT EXISTS decks (
-                        id INTEGER PRIMARY KEY NOT NULL,
-                        name TEXT NOT NULL,
-                        description TEXT NOT NULL,
-                        heroClass TEXT NOT NULL,
-                        cardIds TEXT NOT NULL,
-                        isCustom INTEGER NOT NULL DEFAULT 0,
-                        createdAt INTEGER NOT NULL
-                    )
-                """)
-            }
-        }
+            override fun onCreate(db: SupportSQLiteDatabase) {
+                super.onCreate(db)
+                Log.d("AppDatabase", "Database created for the first time, populating data.")
 
-        private val MIGRATION_2_3 = object : Migration(2, 3) {
-            override fun migrate(database: SupportSQLiteDatabase) {
-                // Add missing columns to cards table
-                val columnsToAdd = listOf(
-                    "description TEXT DEFAULT ''",
-                    "rarity TEXT DEFAULT 'common'",
-                    "imageUri TEXT DEFAULT NULL",
-                    "keywords TEXT DEFAULT NULL",
-                    "heroClass TEXT DEFAULT 'neutral'",
-                    "isCustom INTEGER DEFAULT 0",
-                    "createdAt INTEGER DEFAULT 0"
-                )
-
-                columnsToAdd.forEach { columnDef ->
-                    try {
-                        database.execSQL("ALTER TABLE cards ADD COLUMN $columnDef")
-                    } catch (e: Exception) {
-                        // Column might already exist, continue
+                INSTANCE?.let {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            populateDatabaseWithInitialData(context)
+                            synchronized(initializationLock) {
+                                isInitialized = true
+                                (initializationLock as Object).notifyAll()
+                            }
+                        } catch (e: Exception) {
+                            Log.e("AppDatabase", "Failed to populate database", e)
+                            synchronized(initializationLock) {
+                                isInitialized = true
+                                (initializationLock as Object).notifyAll()
+                            }
+                        }
                     }
+                }
+            }
+
+            override fun onOpen(db: SupportSQLiteDatabase) {
+                super.onOpen(db)
+                synchronized(initializationLock) {
+                    isInitialized = true
+                    (initializationLock as Object).notifyAll()
+                }
+            }
+
+            private suspend fun populateDatabaseWithInitialData(context: Context) {
+                try {
+                    Log.d("AppDatabase", "Starting initial data population...")
+
+                    val heroPowerRepository = HeroPowerRepository(context)
+                    val cardRepository = CardRepository(context)
+                    val deckRepository = DeckRepository(context)
+
+                    heroPowerRepository.initializeDefaultHeroPowers()
+                    cardRepository.initializeDefaultCards()
+                    deckRepository.initializeDefaultDecks()
+
+                    Log.d("AppDatabase", "Initial data population completed successfully.")
+                } catch (e: Exception) {
+                    Log.e("AppDatabase", "Failed to populate database with initial data", e)
                 }
             }
         }

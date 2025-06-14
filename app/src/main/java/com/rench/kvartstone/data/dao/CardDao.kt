@@ -1,4 +1,3 @@
-// CardDao.kt
 package com.rench.kvartstone.data.dao
 
 import androidx.room.Dao
@@ -10,7 +9,6 @@ import androidx.room.Update
 import com.rench.kvartstone.data.entities.CardEntity
 import kotlinx.coroutines.flow.Flow
 
-// Enhanced Card DAO with search and filtering
 @Dao
 interface CardDao {
     @Query("SELECT * FROM cards ORDER BY manaCost ASC, name ASC")
@@ -48,4 +46,10 @@ interface CardDao {
 
     @Query("DELETE FROM cards WHERE id = :cardId")
     suspend fun deleteCardById(cardId: Int)
+
+    @Query("SELECT COUNT(*) FROM cards")
+    suspend fun getCardCount(): Int
+
+    @Query("SELECT * FROM cards WHERE id IN (:cardIds)")
+    suspend fun getCardsByIds(cardIds: List<Int>): List<CardEntity>
 }

@@ -129,6 +129,7 @@ class DeckBuilderViewModel(application: Application) : AndroidViewModel(applicat
     fun getCardCountInDeck(cardId: Int): Int {
         return currentDeckCards[cardId] ?: 0
     }
+
     private fun updateDeckComposition() {
         val composition = currentDeckCards.mapNotNull { (cardId, count) ->
             val card = allCards.find { it.id == cardId }
@@ -218,22 +219,24 @@ class DeckBuilderViewModel(application: Application) : AndroidViewModel(applicat
         currentDeckId = deckId
         viewModelScope.launch {
             try {
-                val deck = deckRepository.getDeckById(deckId)
-                _deckName.value = deck.name
+                // FIX: Use a null-safe call (`let`) to handle the nullable Deck?
+                deckRepository.getDeckById(deckId)?.let { deck ->
+                    // This block will only execute if 'deck' is not null.
+                    _deckName.value = deck.name
 
-                // FIX: The error was here. We no longer need to parse a string of IDs.
-                // We now iterate over the `deck.cards` list that the repository already prepared.
-                currentDeckCards.clear()
+                    currentDeckCards.clear()
 
-                deck.cards.forEach { card ->
-                    // FIX: Get the card's ID directly from the card object.
-                    val cardId = card.id
-                    currentDeckCards[cardId] = (currentDeckCards[cardId] ?: 0) + 1
+                    deck.cards.forEach { card ->
+                        val cardId = card.id
+                        currentDeckCards[cardId] = (currentDeckCards[cardId] ?: 0) + 1
+                    }
+
+                    updateDeckComposition()
+                    _message.value = "Loaded deck '${deck.name}'"
+                } ?: run {
+                    // This block executes if 'deck' is null.
+                    _message.value = "Could not find deck with ID: $deckId"
                 }
-
-                updateDeckComposition()
-                _message.value = "Loaded deck '${deck.name}'"
-
             } catch (e: Exception) {
                 _message.value = "Failed to load deck: ${e.message}"
             }
