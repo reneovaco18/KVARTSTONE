@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="#1E3A8A">
 
-    <!-- Header Section -->
+
     <LinearLayout
         android:id="@+id/headerLayout"
         android:layout_width="0dp"

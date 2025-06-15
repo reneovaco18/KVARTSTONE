@@ -28,7 +28,7 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
 
     private val vm: GameViewModel by viewModels()
     private val args: GamePlayFragmentArgs by navArgs()
-
+    private lateinit var deckCountText: TextView
     /* ---------- adapters ---------- */
     private lateinit var enemyHeroCard: CardView
     private lateinit var handAdapter: CardHandAdapter
@@ -50,7 +50,7 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
     private lateinit var endTurnBtn: Button
     private lateinit var heroPowerBtn: Button
     private lateinit var statusText: TextView
-
+    private lateinit var botManaText: TextView
     /* ---------- targeting state ---------- */
 
     private var awaitingTarget = false
@@ -83,6 +83,8 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
         handToggle       = v.findViewById(R.id.handToggleButton)
         playerHandArea   = v.findViewById(R.id.playerHandArea)
         enemyHeroCard = v.findViewById(R.id.enemyHeroCard)
+        botManaText      = v.findViewById(R.id.botManaDisplay)
+        deckCountText    = v.findViewById(R.id.deckCountText)
     }
 
     /* ---------- recycler views ---------- */
@@ -134,7 +136,9 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
         vm.botBoard.observe(viewLifecycleOwner) {
             botBoardAdapter.submitList(it) { botBoardAdapter.notifyDataSetChanged() }
         }
-
+        vm.deckCount.observe(viewLifecycleOwner) { count ->
+            deckCountText.text = count.toString()
+        }
         vm.validAttackTargets.observe(viewLifecycleOwner) {
             playerBoardAdapter.notifyDataSetChanged()
             botBoardAdapter.notifyDataSetChanged()
@@ -156,6 +160,12 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
         vm.playerMaxMana.observe(viewLifecycleOwner) { max ->
             playerManaText.text = "Mana: ${vm.playerMana.value}/$max"
             refreshHeroPowerBtn()
+        }
+        vm.botMana.observe(viewLifecycleOwner) { mana ->
+            botManaText.text = "Mana: $mana/${vm.botMaxMana.value}"
+        }
+        vm.botMaxMana.observe(viewLifecycleOwner) { max ->
+            botManaText.text = "Mana: ${vm.botMana.value}/$max"
         }
 
         vm.turnNumber.observe(viewLifecycleOwner) { turnNumberText.text = "Turn: $it" }

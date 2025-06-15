@@ -6,7 +6,7 @@
     android:layout_height="match_parent"
     android:background="#1E3A8A">
 
-    <!-- Enemy Hero Section (Top) -->
+
     <androidx.cardview.widget.CardView
         android:id="@+id/enemyHeroCard"
         android:layout_width="0dp"

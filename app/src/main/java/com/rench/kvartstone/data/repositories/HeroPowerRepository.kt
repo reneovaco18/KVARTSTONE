@@ -288,7 +288,7 @@ class HeroPowerRepository(private val context: Context) {
         }
     }
 
-    /
+
     private fun determineEffectType(id: Int) = when (id) {
         1 -> "damage"
         2 -> "heal"

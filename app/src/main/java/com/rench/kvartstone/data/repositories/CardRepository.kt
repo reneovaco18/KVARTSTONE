@@ -61,21 +61,21 @@ class CardRepository(private val context: Context) {
         }
     }
 
-    suspend fun getCardsByIds(cardIds: List<Int>): List<Card> {
-        return try {
-            val entities = cardDao.getCardsByIds(cardIds)
-            entities.mapNotNull { entity ->
-                try {
-                    entityToCard(entity)
-                } catch (e: Exception) {
-                    Log.e("CardRepository", "Error converting card in batch: ${e.message}")
-                    null
-                }
-            }
-        } catch (e: Exception) {
-            Log.e("CardRepository", "Error getting cards by IDs: ${e.message}")
-            emptyList()
+
+    suspend fun getCardsByIds(idList: List<Int>): List<Card> {
+        if (idList.isEmpty()) return emptyList()
+
+
+        val entitiesById: Map<Int, CardEntity> =
+            cardDao.getCardsByIds(idList.distinct())
+                .associateBy { it.id }
+
+
+        val result = mutableListOf<Card>()
+        idList.forEach { id ->
+            entitiesById[id]?.let { result += entityToCard(it) }
         }
+        return result
     }
 
     suspend fun insertCard(cardEntity: CardEntity): Long {

@@ -20,7 +20,7 @@
             android:layout_marginBottom="16dp" />
 
         <!-- Image Preview -->
-        <!-- ✦ NEW preview container for CardDetailFragment ✦ -->
+
         <FrameLayout
             android:id="@+id/previewContainer"
             android:layout_width="match_parent"
@@ -28,7 +28,7 @@
             android:layout_gravity="center"
             android:background="@drawable/card_preview_border"
             android:layout_marginBottom="12dp"/>
-        <!-- ─── ❶ miniature image preview (used by the Select-Image button) ─── -->
+
         <ImageView
             android:id="@+id/cardImagePreview"
             android:layout_width="120dp"
@@ -39,7 +39,7 @@
             android:background="@drawable/card_preview_border"
             android:layout_marginBottom="12dp"/>
 
-        <!-- ─── ❷ effect-picker group (hidden unless type == Spell) ─── -->
+
         <LinearLayout
             android:id="@+id/effectGroup"
             android:layout_width="match_parent"

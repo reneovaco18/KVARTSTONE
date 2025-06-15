@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:gravity="center"
@@ -9,18 +10,27 @@
         android:id="@+id/btnPlay"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Play Game"/>
+        android:text="Play Game" />
 
     <Button
         android:id="@+id/btnDeckManager"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Deck Manager"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="16dp" />
+
     <Button
         android:id="@+id/btnDeckBuilder"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Deck Builder"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="16dp" />
+
+
+    <Button
+        android:id="@+id/btnTestReminder"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Test Daily Reminder"
+        android:layout_marginTop="32dp" />
 </LinearLayout>
