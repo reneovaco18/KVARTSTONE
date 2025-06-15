@@ -36,7 +36,9 @@ android {
 
     buildFeatures {
         compose = true
+        viewBinding = true        // ← enable binding classes
     }
+
 }
 
 
@@ -46,6 +48,7 @@ kapt {
 }
 
 dependencies {
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
     // Compose BOM (recommended)
     implementation(platform("androidx.compose:compose-bom:2024.06.00"))
     implementation("androidx.compose.ui:ui")

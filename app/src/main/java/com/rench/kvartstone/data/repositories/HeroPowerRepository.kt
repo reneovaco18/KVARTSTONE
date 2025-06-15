@@ -7,10 +7,12 @@ import com.rench.kvartstone.data.entities.HeroPowerEntity
 import com.rench.kvartstone.domain.GameEngineInterface
 import com.rench.kvartstone.domain.Hero
 import com.rench.kvartstone.domain.HeroPower
+import com.rench.kvartstone.domain.HeroPowerFactory
 import com.rench.kvartstone.domain.MinionCard
 import com.rench.kvartstone.domain.Turn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.first  // ← ADD this import
 
 class HeroPowerRepository(private val context: Context) {
     private val heroPowerDao = AppDatabase.getDatabase(context).heroPowerDao()
@@ -224,73 +226,101 @@ class HeroPowerRepository(private val context: Context) {
     private fun createDefaultPlayerHeroPower(): HeroPower = HeroPower(
         id          = 1,
         name        = "Fireblast",
-        description = "Deal 1 damage to any character",
+        description = "Deal 1 damage to a character",
         cost        = 2,
-
-        // ② pass a drawable **name**, not an int
-        imageResName = "ic_menu_close_clear_cancel",          // <- changed
-
-        effect       = { engine, target ->
-            when (target) {
-                is MinionCard -> target.takeDamage(1)
-                is Hero       -> target.takeDamage(1)
-                else -> if (engine.currentTurn == Turn.PLAYER)
-                    engine.botHero.takeDamage(1)
-                else engine.playerHero.takeDamage(1)
+        imageResName = "ic_hero_power_fire",
+        effect      = { engine, target ->
+            val real = when (target) {
+                is List<*> -> target.firstOrNull()
+                null       -> if (engine.currentTurn == Turn.PLAYER)
+                    engine.botHero else engine.playerHero
+                else       -> target
+            }
+            when (real) {
+                is MinionCard -> real.takeDamage(1, engine)
+                is Hero       -> real.takeDamage(1)
             }
         }
     )
-
-    suspend fun initializeDefaultHeroPowers() {
+    private fun createDefaultBotHeroPower(): HeroPower = HeroPower(
+        id          = 2,
+        name        = "Lesser Heal",
+        description = "Restore 2 Health to your hero",
+        cost        = 2,
+        imageResName = "ic_hero_power_priest",
+        effect      = { engine, _ ->
+            if (engine.currentTurn == Turn.PLAYER)
+                engine.botHero.heal(2)
+            else
+                engine.playerHero.heal(2)
+        }
+    )
+    suspend fun refreshHeroPowers() {
         try {
-            if (heroPowerDao.getHeroPowerById(1) != null) {
-                Log.d("HeroPowerRepository", "Default hero powers already exist, skipping initialization")
-                return
+            // Clear existing powers synchronously
+            val existingPowers = heroPowerDao.getAllPowers().first()  // ← Get current list
+            existingPowers.forEach { power ->
+                heroPowerDao.deletePowerById(power.id)  // ← Delete each one
             }
 
-            val defaultPowers = listOf(
+            // Insert fresh data from factory
+            val allHeroPowers = HeroPowerFactory.getAllHeroPowers()
+            val entities = allHeroPowers.map { power ->
                 HeroPowerEntity(
-                    id = 1,
-                    name = "Fireblast",
-                    description = "Deal 1 damage to any character",
-                    manaCost = 2,
-                    imageResName = "hero_power_fire",
-                    effectType = "damage",
-                    effectValue = 1,
-                    targetType = "any_character",
-                    isActive = true,
-                    createdAt = System.currentTimeMillis()
-                ),
-                HeroPowerEntity(
-                    id = 2,
-                    name = "Armor Up!",
-                    description = "Gain 2 Armor",
-                    manaCost = 2,
-                    imageResName = "ic_hero_power_warrior",
-                    effectType = "armor",
-                    effectValue = 2,
-                    targetType = "self",
-                    isActive = true,
-                    createdAt = System.currentTimeMillis()
-                ),
-                HeroPowerEntity(
-                    id = 3,
-                    name = "Lesser Heal",
-                    description = "Restore 2 Health to any character",
-                    manaCost = 2,
-                    imageResName = "ic_hero_power_priest",
-                    effectType = "heal",
-                    effectValue = 2,
-                    targetType = "any_character",
+                    id = power.id,  // ← Use the exact ID from factory
+                    name = power.name,
+                    description = power.description,
+                    manaCost = power.cost,
+                    imageResName = power.imageResName,
+                    effectType = determineEffectType(power.id),
+                    effectValue = determineEffectValue(power.id),
+                    targetType = determineTargetType(power.id),
                     isActive = true,
                     createdAt = System.currentTimeMillis()
                 )
-            )
+            }
 
-            defaultPowers.forEach { heroPowerDao.insertPower(it) }
-            Log.d("HeroPowerRepository", "Successfully initialized ${defaultPowers.size} default hero powers")
+            heroPowerDao.insertPowers(entities)
+            Log.d("HeroPowerRepository", "Successfully refreshed ${entities.size} hero powers")
+
         } catch (e: Exception) {
-            Log.e("HeroPowerRepository", "Error initializing default hero powers: ${e.message}")
+            Log.e("HeroPowerRepository", "Error refreshing hero powers: ${e.message}")
         }
     }
+
+    // Helper methods to map factory data to DB schema
+    private fun determineEffectType(id: Int) = when (id) {
+        1 -> "damage"
+        2 -> "heal"
+        3 -> "armor"
+        else -> "unknown"
+    }
+
+    private fun determineEffectValue(id: Int) = when (id) {
+        1 -> 1
+        2 -> 2
+        3 -> 2
+        else -> 0
+    }
+
+    private fun determineTargetType(id: Int) = when (id) {
+        1 -> "any_character"
+        2 -> "self"
+        3 -> "self"
+        else -> "none"
+    }
+
+    // UPDATED: Simple initialization that uses the factory
+    suspend fun initializeDefaultHeroPowers() {
+        try {
+            val count = heroPowerDao.getActivePowerCount()
+            if (count == 0) {
+                refreshHeroPowers()
+            }
+        } catch (e: Exception) {
+            Log.e("HeroPowerRepository", "Error checking/initializing hero powers: ${e.message}")
+        }
+    }
+
+
 }

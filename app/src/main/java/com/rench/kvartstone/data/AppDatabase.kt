@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 @Database(
     entities = [CardEntity::class, HeroPowerEntity::class, DeckEntity::class],
-    version = 5,
+    version = 6,
     exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -93,6 +93,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "kvartstone_database"
                 )
                     .addMigrations(MIGRATION_4_5)
+                    .fallbackToDestructiveMigration()   // drop & recreate for 5→6 (or older)
                     .addCallback(AppDatabaseCallback(context))
                     .build()
                 INSTANCE = instance

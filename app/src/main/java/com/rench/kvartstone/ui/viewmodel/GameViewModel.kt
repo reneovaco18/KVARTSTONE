@@ -218,7 +218,16 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val heroPower = engine.playerHero.heroPower
         return heroPower.canUse(engine.playerMana)
     }
+    /* ---------- hero-power helpers ---------- */
 
+    fun heroPowerRequiresTarget(): Boolean {
+        val hp = engine.playerHero.heroPower
+        return hp.id == 1        // only Fireblast needs a target for now
+    }
+
+    fun validTargetsForHeroPower(): List<Any> =
+        engine.playerBoard + engine.botBoard +
+                listOf(engine.playerHero, engine.botHero)
     /* ---------- private helpers ---------- */
 
     private fun playerReady(): Boolean {

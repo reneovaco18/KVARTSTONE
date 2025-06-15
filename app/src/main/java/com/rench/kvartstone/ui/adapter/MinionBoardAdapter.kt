@@ -52,7 +52,7 @@ class MinionBoardAdapter(
         private val minionHealth: TextView = itemView.findViewById(R.id.minionHealth)
         private val divineShieldIndicator: View? = itemView.findViewById(R.id.divineShieldIndicator)
         private val summonsicknessIndicator: View? = itemView.findViewById(R.id.summonsicknessIndicator)
-        private val highlightBorder: View = itemView.findViewById(R.id.highlightBorder)
+        private val highlightBorder: View? = itemView.findViewById(R.id.highlightBorder)
 
         init {
             itemView.setOnClickListener {
@@ -67,7 +67,7 @@ class MinionBoardAdapter(
             minionImage.setImageResource(if (imageResId != 0) imageResId else R.drawable.ic_card_minion_generic)
             minionAttack.text = minion.attack.toString()
             minionHealth.text = minion.currentHealth.toString()
-            highlightBorder.visibility = View.GONE // Hide border by default
+            highlightBorder?.visibility = View.GONE
 
             val canAttack = if (isPlayerBoard) canAttackWithMinion(position) else false
             val isSelected = if (isPlayerBoard) isMinionSelected(position) else false
@@ -76,19 +76,23 @@ class MinionBoardAdapter(
             itemView.alpha = if (cannotAct) 0.6f else 1.0f
 
             if (isPlayerBoard) {
-                // Friendly minion highlighting
                 if (isSelected) {
-                    highlightBorder.visibility = View.VISIBLE
-                    highlightBorder.setBackgroundResource(R.drawable.border_selected_attacker)
+                    highlightBorder?.apply {
+                        visibility = View.VISIBLE
+                        setBackgroundResource(R.drawable.border_selected_attacker)
+                    }
                 } else if (canAttack) {
-                    highlightBorder.visibility = View.VISIBLE
-                    highlightBorder.setBackgroundResource(R.drawable.border_can_attack)
+                    highlightBorder?.apply {
+                        visibility = View.VISIBLE
+                        setBackgroundResource(R.drawable.border_can_attack)
+                    }
                 }
             } else {
-                // Enemy minion highlighting
                 if (isTarget) {
-                    highlightBorder.visibility = View.VISIBLE
-                    highlightBorder.setBackgroundResource(R.drawable.border_valid_target)
+                    highlightBorder?.apply {
+                        visibility = View.VISIBLE
+                        setBackgroundResource(R.drawable.border_valid_target)
+                    }
                 }
             }
 
@@ -132,8 +136,8 @@ class MinionBoardAdapter(
             } else {
                 minionAttack.setTextColor(itemView.context.getColor(R.color.attack_red))
             }
+            itemView.isClickable = true// <- new code
 
-            itemView.isClickable = isPlayerBoard
         }
     }
 

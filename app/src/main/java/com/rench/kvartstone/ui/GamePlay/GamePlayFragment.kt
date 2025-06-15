@@ -8,6 +8,7 @@ import android.widget.Toast
 import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -31,6 +32,8 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
     private lateinit var botBoardAdapter: MinionBoardAdapter
 
     /* ---------- views ---------- */
+    // GamePlayFragment.kt  (top-level property)
+    private var hasNavigatedToResult = false
 
     private lateinit var handToggle: FloatingActionButton
     private lateinit var playerHandArea: CardView
@@ -47,7 +50,7 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
     private var awaitingTarget = false
     private var validTargets: List<Any> = emptyList()
     private var handVisible = false
-
+    private var awaitingHeroPower = false        // NEW
     /* ---------- lifecycle ---------- */
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -150,11 +153,18 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
 
         vm.gameState.observe(viewLifecycleOwner) { state ->
             state ?: return@observe
+
             endTurnBtn.isEnabled = !state.isProcessingTurn && !state.gameOver
             statusText.text = state.toMessage()
             refreshHeroPowerBtn()
-        }
 
+            if (state.gameOver && !hasNavigatedToResult) {
+                hasNavigatedToResult = true        // ← prevents double navigation
+                val action = GamePlayFragmentDirections
+                    .actionGamePlayFragmentToGameResultFragment(state.playerWon)
+                findNavController().navigate(action)
+            }
+        }
         vm.gameMessage.observe(viewLifecycleOwner) { msg ->
             if (msg.isNotEmpty()) {
                 statusText.text = msg
@@ -178,7 +188,15 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
             clearSelections()
         }
         heroPowerBtn.setOnClickListener {
-            if (vm.useHeroPower()) refreshHeroPowerBtn() else toast("Cannot use hero power!")
+            if (vm.heroPowerRequiresTarget()) {
+                awaitingHeroPower = true
+                awaitingTarget = true
+                validTargets = vm.validTargetsForHeroPower()
+                statusText.text = "Select a target for Fireblast"
+            } else {
+                if (vm.useHeroPower()) refreshHeroPowerBtn()
+                else toast("Cannot use hero power!")
+            }
         }
         handToggle.setOnClickListener { toggleHand() }
         botHeroHealth.setOnClickListener { onBotHeroClick() }
@@ -203,9 +221,11 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
         }
     }
 
+    /* ----- player clicks a friendly minion ----- */
     private fun onPlayerMinionClick(pos: Int) {
         val target = vm.playerBoard.value?.getOrNull(pos) ?: return
         when {
+            awaitingHeroPower        -> { fireHeroPower(target) }
             awaitingTarget           -> { vm.playSelectedCard(target); clearTargeting() }
             vm.selectedMinion.value != null -> vm.attackWithSelectedMinion(target)
             else                     -> vm.selectMinion(pos)
@@ -215,27 +235,28 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
     private fun onBotMinionClick(pos: Int) {
         val target = vm.botBoard.value?.getOrNull(pos) ?: return
         when {
+            awaitingHeroPower        -> { fireHeroPower(target) }
             awaitingTarget           -> { vm.playSelectedCard(target); clearTargeting() }
             vm.selectedMinion.value != null -> vm.attackWithSelectedMinion(target)
         }
     }
 
-    private fun onBotHeroClick() {
-        val hero = vm.botHero.value ?: return
-        when {
-            awaitingTarget           -> { vm.playSelectedCard(hero); clearTargeting() }
-            vm.selectedMinion.value != null -> vm.attackWithSelectedMinion(hero)
+    private fun onBotHeroClick()   = heroClick(vm.botHero.value)
+    private fun onPlayerHeroClick() = heroClick(vm.playerHero.value)
+    private fun heroClick(hero: Hero?) {
+        hero ?: return
+        if (awaitingHeroPower)    fireHeroPower(hero)
+        else if (awaitingTarget && validTargets.contains(hero)) {
+            vm.playSelectedCard(hero); clearTargeting()
         }
     }
-
-    private fun onPlayerHeroClick() {
-        val hero = vm.playerHero.value ?: return
-        if (awaitingTarget && validTargets.contains(hero)) {
-            vm.playSelectedCard(hero)
-            clearTargeting()
+    private fun fireHeroPower(target: Any) {
+        if (vm.useHeroPower(target)) {
+            refreshHeroPowerBtn()
+            toast("Hero power used!")
         }
+        clearTargeting()
     }
-
     /* ---------- targeting UI ---------- */
 
     private fun enterTargeting(spell: SpellCard) {
@@ -252,6 +273,7 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
     private fun clearTargeting() {
         awaitingTarget = false
         validTargets = emptyList()
+        awaitingHeroPower = false
     }
 
     private fun clearSelections() {

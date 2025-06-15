@@ -5,7 +5,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "hero_powers")
 data class HeroPowerEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    @PrimaryKey val id: Int,  // ← REMOVE autoGenerate = true
     val name: String,
     val description: String,
     val manaCost: Int,

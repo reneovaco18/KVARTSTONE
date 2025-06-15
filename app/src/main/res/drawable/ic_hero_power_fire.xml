@@ -6,17 +6,17 @@
 
     <!-- Background circle -->
     <path
-        android:fillColor="#FF8B4513"
+        android:fillColor="#FFDC143C"
         android:pathData="M24,2A22,22 0 1,1 23.99,2z"/>
 
-    <!-- Shield -->
+    <!-- Flame shape -->
     <path
-        android:fillColor="#FFC0C0C0"
-        android:pathData="M24,8L18,12v8c0,6 6,12 6,12s6,-6 6,-12v-8L24,8z"/>
+        android:fillColor="#FFFF4500"
+        android:pathData="M24,8c-3,0 -6,2 -6,8c0,4 2,8 6,12c4,-4 6,-8 6,-12c0,-6 -3,-8 -6,-8z"/>
 
     <!-- Border circle -->
     <path
-        android:strokeColor="#FF654321"
+        android:strokeColor="#FFB22222"
         android:strokeWidth="2"
         android:fillColor="@android:color/transparent"
         android:pathData="M24,2A22,22 0 1,1 23.99,2z"/>

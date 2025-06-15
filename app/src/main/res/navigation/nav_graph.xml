@@ -24,6 +24,21 @@
             android:defaultValue="-1"
             app:argType="integer" />
     </fragment>
+    <fragment
+        android:id="@+id/gameResultFragment"
+        android:name="com.rench.kvartstone.ui.GameResultFragment"
+        android:label="Game Result"
+        tools:layout="@layout/fragment_game_result">
+
+        <argument
+            android:name="playerWon"
+            app:argType="boolean" />
+
+        <action
+            android:id="@+id/action_gameResultFragment_to_mainMenuFragment"
+            app:destination="@id/mainMenuFragment"/>
+    </fragment>
+
 
     <action
         android:id="@+id/action_mainMenu_to_deckBuilder"
@@ -87,6 +102,9 @@
         android:id="@+id/gamePlayFragment"
         android:name="com.rench.kvartstone.ui.GamePlay.GamePlayFragment"
         android:label="GamePlayFragment">
+        <action
+            android:id="@+id/action_gamePlayFragment_to_gameResultFragment"
+            app:destination="@id/gameResultFragment"/>
         <argument
             android:name="heroPowerId"
             app:argType="integer"

@@ -10,7 +10,6 @@ import com.rench.kvartstone.domain.HeroPower
 import kotlinx.coroutines.launch
 
 class HeroPowerSelectionViewModel(application: Application) : AndroidViewModel(application) {
-
     private val heroPowerRepository = HeroPowerRepository(application)
 
     private val _heroPowers = MutableLiveData<List<HeroPower>>()
@@ -21,6 +20,9 @@ class HeroPowerSelectionViewModel(application: Application) : AndroidViewModel(a
 
     fun loadAvailableHeroPowers() {
         viewModelScope.launch {
+            // Force refresh to ensure we have the latest data
+            heroPowerRepository.refreshHeroPowers()
+
             heroPowerRepository.allHeroPowers.collect { powers ->
                 _heroPowers.value = powers
             }
