@@ -56,9 +56,12 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("io.coil-kt:coil:2.6.0")
-
+    implementation ("androidx.work:work-runtime-ktx:2.9.0")
     implementation("io.coil-kt:coil-base:2.6.0") // <-- add for uri/file
 
+    implementation ("androidx.core:core-ktx:1.13.1")
+    implementation ("androidx.activity:activity-ktx:1.9.0")
+    implementation ("androidx.fragment:fragment-ktx:1.7.0")
     // Navigation
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
@@ -69,7 +72,8 @@ dependencies {
     implementation("androidx.room:room-runtime:$room_version")
     implementation("androidx.room:room-ktx:$room_version")
     kapt("androidx.room:room-compiler:$room_version")
-
+    // ⬇ THIS one actually contains ProcessLifecycleOwner
+    implementation ("androidx.lifecycle:lifecycle-process:2.8.2")
     // Core Android libraries
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")

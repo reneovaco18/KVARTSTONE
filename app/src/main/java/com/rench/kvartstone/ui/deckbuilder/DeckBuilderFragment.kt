@@ -21,7 +21,7 @@ class DeckBuilderFragment : Fragment(R.layout.fragment_deck_builder) {
     private lateinit var availableCardsAdapter: DeckBuilderCardAdapter
     private lateinit var deckCompositionAdapter: DeckCompositionAdapter
 
-    // UI Components
+
     private lateinit var availableCardsRecyclerView: RecyclerView
     private lateinit var deckCompositionRecyclerView: RecyclerView
     private lateinit var searchView: SearchView
@@ -35,7 +35,7 @@ class DeckBuilderFragment : Fragment(R.layout.fragment_deck_builder) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Get deck ID if editing existing deck
+
         val deckId = arguments?.getInt("deckId", -1) ?: -1
         if (deckId != -1) {
             viewModel.loadExistingDeck(deckId)
@@ -61,7 +61,7 @@ class DeckBuilderFragment : Fragment(R.layout.fragment_deck_builder) {
     }
 
     private fun setupRecyclerViews() {
-        // Available cards grid layout for browsing
+
         availableCardsAdapter = DeckBuilderCardAdapter(
             onCardClick = { card -> viewModel.addCardToDeck(card) },
             onCardLongClick = { card -> showCardDetails(card) },
@@ -74,7 +74,7 @@ class DeckBuilderFragment : Fragment(R.layout.fragment_deck_builder) {
             setHasFixedSize(true)
         }
 
-        // Deck composition list for current deck
+
         deckCompositionAdapter = DeckCompositionAdapter(
             onRemoveCard = { cardId -> viewModel.removeCardFromDeck(cardId) },
             onCardClick = { card -> showCardDetails(card) }
@@ -88,7 +88,7 @@ class DeckBuilderFragment : Fragment(R.layout.fragment_deck_builder) {
     }
 
     private fun setupSearchAndFilter() {
-        // Search functionality for finding specific cards
+
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query?.let { viewModel.searchCards(it) }
@@ -101,7 +101,7 @@ class DeckBuilderFragment : Fragment(R.layout.fragment_deck_builder) {
             }
         })
 
-        // Filter options for card browsing
+
         val filterOptions = arrayOf("All Cards", "Minions", "Spells", "Low Cost (0-3)", "High Cost (4+)")
         val spinnerAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, filterOptions)
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)

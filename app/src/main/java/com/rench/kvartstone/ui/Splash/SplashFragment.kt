@@ -12,10 +12,10 @@ class SplashFragment : Fragment(R.layout.fragment_splash) {
         super.onViewCreated(view, savedInstanceState)
         val logo = view.findViewById<ImageView>(R.id.logoImage)
 
-        // Simple fade-in animation
+
         logo.alpha = 0f
         logo.animate().alpha(1f).setDuration(1200).withEndAction {
-            // After animation, navigate to Main Menu
+
             findNavController().navigate(R.id.action_splashFragment_to_mainMenuFragment)
         }
     }

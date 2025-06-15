@@ -16,10 +16,12 @@ data class MinionCard(
     var hasDivineShield: Boolean = false,
     var hasAttackedThisTurn: Boolean = false,
     var canAttackThisTurn: Boolean = false,
-    // @RawValue **goes on the TYPE**, not on the constructor parameter[2]
+
+
     var battlecryEffect : @RawValue ((GameEngineInterface, List<Any>) -> Unit)? = null,
     var deathrattleEffect: @RawValue ((GameEngineInterface, List<Any>) -> Unit)? = null,
-    var summoned: Boolean = false
+    var summoned: Boolean = false,
+
 ) : Card(id, name, manaCost, imageResName, imageUri) {
 
     val health: Int get() = currentHealth
@@ -39,7 +41,7 @@ data class MinionCard(
 
     private fun triggerDeathrattle(engine: GameEngineInterface? = null) {
         val realEngine = engine ?: resolveCurrentEngine()
-        deathrattleEffect?.invoke(realEngine, emptyList())   // << second argument added
+        deathrattleEffect?.invoke(realEngine, emptyList())
     }
 
     private fun resolveCurrentEngine(): GameEngineInterface =

@@ -16,7 +16,7 @@ import com.rench.kvartstone.domain.SpellEffect
 import com.rench.kvartstone.ui.fragments.CardDetailFragment
 import com.rench.kvartstone.utils.ImageStorageManager
 import java.io.File
-import com.rench.kvartstone.data.repositories.CardRepository
+
 import com.rench.kvartstone.ui.ext.CardMapper
 import com.rench.kvartstone.ui.ext.loadCard
 
@@ -54,7 +54,7 @@ class CardEditorDialog : DialogFragment() {
     private lateinit var selectImageButton: Button
     private lateinit var saveButton: Button
     private lateinit var cancelButton: Button
-    // add fields
+
 
 
     private val imagePickerLauncher = registerForActivityResult(
@@ -72,7 +72,7 @@ class CardEditorDialog : DialogFragment() {
     override fun onStart() {
         super.onStart()
 
-        // Set dialog to 90% width and 80% height
+
         val displayMetrics = resources.displayMetrics
         val width = (displayMetrics.widthPixels * 0.90).toInt()
         val height = (displayMetrics.heightPixels * 0.80).toInt()
@@ -132,7 +132,7 @@ class CardEditorDialog : DialogFragment() {
     }
 
     private fun setupSpinners() {
-        // effect spinner
+
         val effects = arrayOf("None", "Deal Damage", "Heal Hero")
         effectTypeSpinner.adapter =
             ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, effects).apply {
@@ -164,7 +164,7 @@ class CardEditorDialog : DialogFragment() {
         }
     }
     private fun refreshPreview() {
-        val entity = buildCardEntity()   // you already have the builder
+        val entity = buildCardEntity()
         val card   = CardMapper.toDomain(requireContext(), entity)
 
         childFragmentManager.beginTransaction().apply {
@@ -173,7 +173,7 @@ class CardEditorDialog : DialogFragment() {
             add(R.id.previewContainer, previewFragment!!)
         }.commitNowAllowingStateLoss()
 
-        // keep small thumbnail in sync
+
         cardImagePreview.loadCard(card)
     }
     private fun buildCardEntity(): CardEntity {
@@ -185,7 +185,7 @@ class CardEditorDialog : DialogFragment() {
         val hp     = if (type == "minion") healthSeekBar.progress else null
         val rarity = arrayOf("common","rare","epic","legendary")[raritySpinner.selectedItemPosition]
 
-        // spell effect
+
         val effect = if (type == "spell" && effectTypeSpinner.selectedItemPosition != 0) {
             val kind  = if (effectTypeSpinner.selectedItemPosition == 1) "damage" else "heal"
             SpellEffect(kind, effectValuePicker.value).toString()
@@ -219,7 +219,7 @@ class CardEditorDialog : DialogFragment() {
         costSeekBar.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener{
             override fun onProgressChanged(sb: SeekBar?, p: Int, f: Boolean) {
                 costLabel.text = "Cost: $p"
-                refreshPreview()                       // <-- here
+                refreshPreview()
             }
             override fun onStartTrackingTouch(sb: SeekBar?) {}
             override fun onStopTrackingTouch(sb: SeekBar?) {}
@@ -278,7 +278,7 @@ class CardEditorDialog : DialogFragment() {
             healthSeekBar.progress = card.health ?: 1
         }
 
-        // Load existing custom image if it exists
+
         if (card.imageUri != null) {
             cardImagePreview.load(File(card.imageUri)) {
                 crossfade(true)

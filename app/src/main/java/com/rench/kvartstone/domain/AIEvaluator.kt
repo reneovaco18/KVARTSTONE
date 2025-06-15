@@ -23,7 +23,7 @@ class AIEvaluator(private val gameEngine: GameEngineInterface) {
             }
         }
 
-        // Add attack decisions for available minions
+
         friendlyBoard.forEachIndexed { index, minion ->
             if (minion.canAttack()) {
                 val target = findBestAttackTarget(minion, enemyBoard, gameEngine.playerHero)
@@ -86,13 +86,13 @@ class AIEvaluator(private val gameEngine: GameEngineInterface) {
     }
 
     fun findBestAttackTarget(attacker: MinionCard, enemyBoard: List<MinionCard>, enemyHero: Hero): Any? {
-        // Prioritize weak minions that can be killed
+
         val killableMinions = enemyBoard.filter { it.currentHealth <= attacker.attack }
         if (killableMinions.isNotEmpty()) {
             return killableMinions.maxByOrNull { it.attack + it.maxHealth }
         }
 
-        // Otherwise attack face if no good trades
+
         return if (enemyBoard.isEmpty()) enemyHero else enemyBoard.randomOrNull()
     }
 

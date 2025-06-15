@@ -68,10 +68,10 @@ open class GameEngine(
             is MinionCard -> {
                 if (playerBoard.size < 7) { // Board limit
                     card.summoned = true
-                    card.canAttackThisTurn = false // Summoning sickness
+                    card.canAttackThisTurn = false
                     playerBoard.add(card)
 
-                    // Trigger battlecry if it requires a target
+
                     val targets = if (target != null) listOf(target) else emptyList()
                     card.triggerBattlecry(this, targets)
                 }
@@ -82,7 +82,7 @@ open class GameEngine(
             }
         }
 
-        // Clean up dead minions
+
         cleanupDeadMinions()
         return true
     }
@@ -108,13 +108,13 @@ open class GameEngine(
         } else false
     }
 
-    // Add override modifier to the attack method
+
     override fun attack(attacker: MinionCard, target: Any): Boolean {
         if (!attacker.canAttack()) return false
 
         when (target) {
             is MinionCard -> {
-                // Both minions take damage
+
                 attacker.takeDamage(target.attack)
                 target.takeDamage(attacker.attack)
             }
@@ -134,7 +134,7 @@ open class GameEngine(
     fun botPlayCard(): Boolean {
         if (botHand.isEmpty()) return false
 
-        // Simple AI: Play first affordable card
+
         for (i in botHand.indices) {
             val card = botHand[i]
             if (card.manaCost <= botMana) {
@@ -148,7 +148,7 @@ open class GameEngine(
                             card.canAttackThisTurn = false
                             botBoard.add(card)
 
-                            // Simple battlecry targeting
+
                             val targets = if (playerBoard.isNotEmpty()) {
                                 listOf(playerBoard.random())
                             } else {
@@ -158,7 +158,7 @@ open class GameEngine(
                         }
                     }
                     is SpellCard -> {
-                        // Simple spell targeting
+
                         val targets = when (card.targetingType) {
                             TargetingType.SINGLE_MINION -> {
                                 if (playerBoard.isNotEmpty()) listOf(playerBoard.random()) else emptyList()
@@ -197,17 +197,17 @@ open class GameEngine(
                 currentTurn = Turn.PLAYER
                 turnNumber++
 
-                // Increase mana correctly
+
                 playerMaxMana = minOf(playerMaxMana + 1, 10)
                 botMaxMana = minOf(botMaxMana + 1, 10)
-                playerMana = playerMaxMana // Refill to max
-                botMana = botMaxMana // Refill to max
+                playerMana = playerMaxMana
+                botMana = botMaxMana
 
-                // Draw cards
+
                 drawCardForPlayer()
                 drawCardForBot()
 
-                // Reset for new turn
+
                 playerBoard.forEach { it.resetForNewTurn() }
                 botHero.resetHeroPower()
             }
@@ -215,12 +215,12 @@ open class GameEngine(
     }
 
     private fun botTurn() {
-        // Bot AI logic
+
         while (botPlayCard()) {
-            // Keep playing cards until no more can be played
+
         }
 
-        // Attack with all available minions
+
         botBoard.filter { it.canAttack() }.forEach { minion ->
             val targets = playerBoard + listOf(playerHero)
             if (targets.isNotEmpty()) {

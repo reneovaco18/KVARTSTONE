@@ -41,13 +41,13 @@ class DeckCompositionAdapter(
             cardCost.text = card.manaCost.toString()
             cardCount.text = "x${item.count}"
 
-            // Load card image with fallback
+
             val resourceId = itemView.context.resources.getIdentifier(
                 card.imageResName, "drawable", itemView.context.packageName
             )
             cardImage.loadCard(card)
 
-            // Set click listeners
+
             removeButton.setOnClickListener { onRemoveCard(card.id) }
             itemView.setOnClickListener { onCardClick(card) }
         }

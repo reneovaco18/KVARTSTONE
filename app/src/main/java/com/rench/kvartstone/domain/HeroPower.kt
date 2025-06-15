@@ -11,11 +11,11 @@ data class HeroPower(
     var usedThisTurn: Boolean = false
         private set
 
-    // Smart targeting detection
+
     val isTargeted: Boolean
         get() = when (id) {
-            1 -> true   // Fireblast targets any character
-            else -> false   // All others are self-targeted or non-targeted
+            1 -> true
+            else -> false
         }
 
     fun canUse(currentMana: Int) = !usedThisTurn && currentMana >= cost

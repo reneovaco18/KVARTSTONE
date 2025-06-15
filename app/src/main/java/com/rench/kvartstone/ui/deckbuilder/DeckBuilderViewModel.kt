@@ -9,7 +9,7 @@ import com.rench.kvartstone.data.entities.CardEntity
 import com.rench.kvartstone.data.entities.DeckEntity
 import com.rench.kvartstone.data.repositories.CardRepository
 import com.rench.kvartstone.data.repositories.DeckRepository
-import com.rench.kvartstone.data.AppDatabase
+
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 
@@ -23,7 +23,7 @@ class DeckBuilderViewModel(application: Application) : AndroidViewModel(applicat
     private val cardRepository = CardRepository(application)
     private val deckRepository = DeckRepository(application)
 
-    // LiveData for UI updates
+
     private val _availableCards = MutableLiveData<List<CardEntity>>(emptyList())
     val availableCards: LiveData<List<CardEntity>> = _availableCards
 
@@ -42,10 +42,10 @@ class DeckBuilderViewModel(application: Application) : AndroidViewModel(applicat
     private val _deckSaved = MutableLiveData(false)
     val deckSaved: LiveData<Boolean> = _deckSaved
 
-    // Internal state management
+
     private var allCards = listOf<CardEntity>()
     private var filteredCards = listOf<CardEntity>()
-    private val currentDeckCards = mutableMapOf<Int, Int>() // cardId to count mapping
+    private val currentDeckCards = mutableMapOf<Int, Int>()
     private var currentDeckId: Int? = null
 
     companion object {
@@ -72,7 +72,7 @@ class DeckBuilderViewModel(application: Application) : AndroidViewModel(applicat
         viewModelScope.launch {
             try {
                 cardRepository.allCards.collect { domainCards ->
-                    // Convert domain cards to entities for UI display
+
                     allCards = domainCards.map { card ->
                         CardEntity(
                             id = card.id,
@@ -201,17 +201,17 @@ class DeckBuilderViewModel(application: Application) : AndroidViewModel(applicat
             try {
                 val cardIds = currentDeckCards.flatMap { (id, count) -> List(count) { id } }
                 val deckEntity = DeckEntity(
-                    id = currentDeckId ?: 0, // Use 0 for new decks so Room auto-generates the ID
+                    id = currentDeckId ?: 0,
                     name = deckName.value ?: "Unnamed Deck",
                     description = "A custom deck.",
-                    heroClass = "neutral", // You can enhance this later
+                    heroClass = "neutral",
                     cardIds = JSONArray(cardIds).toString(),
                     isCustom = true,
                     createdAt = System.currentTimeMillis()
                 )
 
                 if (currentDeckId == null) {
-                    // This is a NEW deck, insert it
+
                     val newId = deckRepository.insertDeck(deckEntity)
                     if (newId > 0) {
                         _message.value = "Deck '${deckEntity.name}' saved!"
@@ -220,7 +220,7 @@ class DeckBuilderViewModel(application: Application) : AndroidViewModel(applicat
                         _message.value = "Failed to save new deck."
                     }
                 } else {
-                    // This is an EXISTING deck, update it
+
                     val success = deckRepository.updateDeck(deckEntity)
                     if (success) {
                         _message.value = "Deck '${deckEntity.name}' updated!"
@@ -243,12 +243,12 @@ class DeckBuilderViewModel(application: Application) : AndroidViewModel(applicat
                     _deckName.value = deck.name
                     currentDeckCards.clear()
 
-                    // Reconstruct the map from the list of cards
+
                     deck.cards.forEach { card ->
                         currentDeckCards[card.id] = (currentDeckCards[card.id] ?: 0) + 1
                     }
 
-                    updateDeckComposition() // Update the UI
+                    updateDeckComposition()
                     _message.value = "Editing deck: '${deck.name}'"
                 } ?: run {
                     _message.value = "Could not find deck with ID: $deckId"

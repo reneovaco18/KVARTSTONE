@@ -1,7 +1,7 @@
 package com.rench.kvartstone.domain
 object HeroPowerFactory {
 
-    // Central registry of all hero powers
+
     fun getAllHeroPowers(): List<HeroPower> = listOf(
         createFireblast(),
         createLesserHeal(),
@@ -11,7 +11,7 @@ object HeroPowerFactory {
     fun createHeroPower(id: Int): HeroPower =
         getAllHeroPowers().find { it.id == id } ?: createFireblast()
 
-    // Individual power definitions
+
     private fun createFireblast() = HeroPower(
         id = 1,
         name = "Fireblast",

@@ -24,6 +24,6 @@ interface GameEngineInterface {
     fun endTurn()
     fun useHeroPower(target: Any?): Boolean
 
-    // Add the missing attack method
+
     fun attack(attacker: MinionCard, target: Any): Boolean
 }

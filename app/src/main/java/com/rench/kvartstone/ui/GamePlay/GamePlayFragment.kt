@@ -20,19 +20,25 @@ import com.rench.kvartstone.ui.adapters.MinionBoardAdapter
 import com.rench.kvartstone.ui.fragments.CardDetailFragment
 import com.rench.kvartstone.ui.viewmodel.GameViewModel
 
+import android.view.ViewGroup
+import com.rench.kvartstone.ui.anim.animateSpell
+
+
 class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
 
     private val vm: GameViewModel by viewModels()
     private val args: GamePlayFragmentArgs by navArgs()
 
     /* ---------- adapters ---------- */
-
+    private lateinit var enemyHeroCard: CardView
     private lateinit var handAdapter: CardHandAdapter
     private lateinit var playerBoardAdapter: MinionBoardAdapter
     private lateinit var botBoardAdapter: MinionBoardAdapter
-
+    private lateinit var handRv      : RecyclerView
+    private lateinit var playerBoardRv: RecyclerView
+    private lateinit var botBoardRv  : RecyclerView
     /* ---------- views ---------- */
-    // GamePlayFragment.kt  (top-level property)
+
     private var hasNavigatedToResult = false
 
     private lateinit var handToggle: FloatingActionButton
@@ -50,8 +56,8 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
     private var awaitingTarget = false
     private var validTargets: List<Any> = emptyList()
     private var handVisible = false
-    private var awaitingHeroPower = false        // NEW
-    /* ---------- lifecycle ---------- */
+    private var awaitingHeroPower = false
+
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -76,12 +82,15 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
         statusText       = v.findViewById(R.id.gameStatusText)
         handToggle       = v.findViewById(R.id.handToggleButton)
         playerHandArea   = v.findViewById(R.id.playerHandArea)
+        enemyHeroCard = v.findViewById(R.id.enemyHeroCard)
     }
 
     /* ---------- recycler views ---------- */
 
     private fun setupRecyclerViews(v: View) {
-        val handRv = v.findViewById<RecyclerView>(R.id.playerHandRecyclerView)
+        handRv = v.findViewById(R.id.playerHandRecyclerView)
+        playerBoardRv = v.findViewById(R.id.playerBoardRecyclerView)
+        botBoardRv    = v.findViewById(R.id.botBoardRecyclerView)
         handAdapter = CardHandAdapter(
             onCardClick     = ::onCardClick,
             onCardLongClick = { showCardDetails(it) },
@@ -159,7 +168,7 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
             refreshHeroPowerBtn()
 
             if (state.gameOver && !hasNavigatedToResult) {
-                hasNavigatedToResult = true        // ← prevents double navigation
+                hasNavigatedToResult = true
                 val action = GamePlayFragmentDirections
                     .actionGamePlayFragmentToGameResultFragment(state.playerWon)
                 findNavController().navigate(action)
@@ -199,7 +208,7 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
             }
         }
         handToggle.setOnClickListener { toggleHand() }
-        // hero portraits ----------------------------------------------------
+
         botHeroHealth   .setOnClickListener { onBotHeroClick() }
         playerHeroHealth.setOnClickListener { onPlayerHeroClick() }
         view?.findViewById<CardView>(R.id.enemyHeroCard)
@@ -211,7 +220,7 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
         if (awaitingTarget) { clearTargeting(); return }
 
         if (vm.selectedCard.value == pos) {
-            // second tap -> play
+
             if (card is SpellCard && card.requiresTarget()) {
                 enterTargeting(card)
             } else {
@@ -244,23 +253,28 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
         }
     }
 
+    private fun GameViewModel.getSelectedSpell(): SpellCard? =
+        playerHand.value?.getOrNull(selectedCard.value ?: -1) as? SpellCard
+
     private fun onBotHeroClick()   = heroClick(vm.botHero.value)
     private fun onPlayerHeroClick() = heroClick(vm.playerHero.value)
     private fun heroClick(hero: Hero?) {
         hero ?: return
 
-        if (awaitingHeroPower) {                      // hero power targeting
+
+        if (awaitingHeroPower) {
             fireHeroPower(hero)
             return
         }
 
-        if (awaitingTarget && validTargets.contains(hero)) {   // spell targeting
-            vm.playSelectedCard(hero)
-            clearTargeting()
+
+        if (awaitingTarget && validTargets.contains(hero)) {
+            val spell = vm.getSelectedSpell() ?: return
+            fireSpell(spell, listOf(hero))
             return
         }
 
-        // -------- NEW: minion → hero attack routing --------
+
         if (vm.selectedMinion.value != null &&
             vm.validAttackTargets.value?.contains(hero) == true) {
 
@@ -299,6 +313,40 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
         vm.selectMinion(null)
         clearTargeting()
     }
+    private fun fireSpell(card: SpellCard, targets: List<Any>) {
+
+        val handPos  = vm.selectedCard.value ?: return
+        val cardView = handRv.findViewHolderForAdapterPosition(handPos)?.itemView ?: return
+        val first    = targets.firstOrNull() ?: return
+
+
+        val targetView = when (first) {
+
+            is MinionCard -> {
+
+                val playerIdx = vm.playerBoard.value?.indexOf(first) ?: -1
+                if (playerIdx != -1) {
+                    playerBoardRv.findViewHolderForAdapterPosition(playerIdx)?.itemView
+                } else {
+                    val botIdx = vm.botBoard.value?.indexOf(first) ?: -1
+                    botBoardRv.findViewHolderForAdapterPosition(botIdx)?.itemView
+                }
+            }
+
+            is Hero -> enemyHeroCard
+            else    -> null
+        } ?: return
+
+
+        val root = requireView() as ViewGroup
+        animateSpell(cardView, targetView, root) {
+            vm.playSelectedCard(first)
+            clearSelections()
+        }
+    }
+
+
+
 
     /* ---------- visuals ---------- */
 

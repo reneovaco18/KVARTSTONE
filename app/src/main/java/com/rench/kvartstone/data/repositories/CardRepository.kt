@@ -35,7 +35,11 @@ class CardRepository(private val context: Context) {
             }
         }
     }
+    suspend fun insert(card: CardEntity): Long = insertCard(card)
 
+    suspend fun insertAll(cards: List<CardEntity>) {
+        cardDao.insertCards(cards)
+    }
     fun searchCards(query: String): Flow<List<Card>> = cardDao.searchCards(query).map { entities ->
         entities.mapNotNull { entity ->
             try {
@@ -141,23 +145,41 @@ class CardRepository(private val context: Context) {
         }
     }
     private fun createSpellEffect(raw: String?): (GameEngineInterface, List<Any>) -> Unit {
-        val s = SpellEffect.fromString(raw) ?: return { _, _ -> }
-        return when (s.type) {
-            "damage" -> { _, targets ->
-                targets.firstOrNull()?.let {
-                    when (it) {
-                        is MinionCard -> it.takeDamage(s.value)
-                        is Hero       -> it.takeDamage(s.value)
-                    }
+
+
+        SpellEffect.fromString(raw)?.let { spec ->
+            return when (spec.type) {
+                "damage" -> damageFn(spec.value)
+                "heal"   -> healHeroFn(spec.value)
+                else     -> { _, _ -> }
+            }
+        }
+
+
+        raw?.lowercase()?.let { txt ->
+            Regex("""deal\s+(\d+)\s+damage""").find(txt)
+                ?.groupValues?.getOrNull(1)?.toIntOrNull()
+                ?.let { return damageFn(it) }
+
+            Regex("""restore\s+(\d+)\s+health""").find(txt)
+                ?.groupValues?.getOrNull(1)?.toIntOrNull()
+                ?.let { return healHeroFn(it) }
+        }
+
+        return { _, _ -> }
+    }
+    private fun damageFn(dmg: Int): (GameEngineInterface, List<Any>) -> Unit =
+        { _, targets ->
+            targets.forEach {
+                when (it) {
+                    is MinionCard -> it.takeDamage(dmg)
+                    is Hero       -> it.takeDamage(dmg)
                 }
             }
-            "heal"   -> { engine, _ ->
-                engine.playerHero.heal(s.value)      // only player-side cards for now
-            }
-            else     -> { _, _ -> }
         }
-    }
 
+    private fun healHeroFn(hp: Int): (GameEngineInterface, List<Any>) -> Unit =
+        { engine, _ -> engine.playerHero.heal(hp) }
     private fun determineTargetingType(effectString: String?): TargetingType {
         return when (effectString?.lowercase()) {
             "deal 2 damage", "deal 1 damage" -> TargetingType.SINGLE_CHARACTER
@@ -167,20 +189,20 @@ class CardRepository(private val context: Context) {
 
 
 
-    // FIXED: Removed hardcoded IDs - let database auto-generate them
+
     suspend fun initializeDefaultCards() {
         try {
-            // Check if any cards exist (not just ID 1)
+
             val existingCount = cardDao.getCardCount()
             if (existingCount > 0) {
                 Log.d("CardRepository", "Cards already exist ($existingCount), skipping initialization")
                 return
             }
 
-            // Create default cards WITHOUT hardcoded IDs (id = 0 means auto-generate)
+
             val defaultCards = listOf(
                 CardEntity(
-                    id = 0, // Let database auto-generate
+                    id = 0,
                     name = "Vanilla Minion",
                     description = "A basic minion with no special abilities",
                     type = "minion",
@@ -192,7 +214,7 @@ class CardRepository(private val context: Context) {
                     isCustom = false
                 ),
                 CardEntity(
-                    id = 0, // Let database auto-generate
+                    id = 0,
                     name = "Strong Attacker",
                     description = "High attack, low health minion",
                     type = "minion",
@@ -204,7 +226,7 @@ class CardRepository(private val context: Context) {
                     isCustom = false
                 ),
                 CardEntity(
-                    id = 0, // Let database auto-generate
+                    id = 0,
                     name = "Tough Defender",
                     description = "Low attack, high health minion",
                     type = "minion",
@@ -216,7 +238,7 @@ class CardRepository(private val context: Context) {
                     isCustom = false
                 ),
                 CardEntity(
-                    id = 0, // Let database auto-generate
+                    id = 0,
                     name = "Lightning Bolt",
                     description = "Deal 2 damage to any target",
                     type = "spell",
@@ -228,7 +250,7 @@ class CardRepository(private val context: Context) {
                     isCustom = false
                 ),
                 CardEntity(
-                    id = 0, // Let database auto-generate
+                    id = 0,
                     name = "Fireball",
                     description = "Deal 1 damage to any target",
                     type = "spell",
@@ -241,7 +263,7 @@ class CardRepository(private val context: Context) {
                 )
             )
 
-            // Insert cards one by one to get their auto-generated IDs
+
             val insertedIds = mutableListOf<Long>()
             for (card in defaultCards) {
                 val insertedId = cardDao.insertCard(card)
@@ -251,7 +273,7 @@ class CardRepository(private val context: Context) {
 
             Log.d("CardRepository", "Successfully initialized ${defaultCards.size} default cards with IDs: $insertedIds")
 
-            // Verify insertion
+
             val finalCount = cardDao.getCardCount()
             Log.d("CardRepository", "Final card count after initialization: $finalCount")
 

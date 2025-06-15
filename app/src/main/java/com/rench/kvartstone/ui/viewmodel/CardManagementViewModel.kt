@@ -27,7 +27,7 @@ class CardManagementViewModel(application: Application) : AndroidViewModel(appli
     private val _selectedImageUri = MutableLiveData<Uri?>()
     val selectedImageUri: LiveData<Uri?> = _selectedImageUri
 
-    // Keep original list for filtering
+
     private var originalCards = listOf<CardEntity>()
     private var currentFilter = FilterType.ALL
 
@@ -43,7 +43,7 @@ class CardManagementViewModel(application: Application) : AndroidViewModel(appli
         viewModelScope.launch {
             _isLoading.value = true
             try {
-                // Use the existing method that returns CardEntity directly
+
                 cardRepository.getAllCardsAsEntity().collect { cardEntities ->
                     originalCards = cardEntities
                     refreshCurrentView()
@@ -96,7 +96,7 @@ class CardManagementViewModel(application: Application) : AndroidViewModel(appli
     fun createCard(card: CardEntity) {
         viewModelScope.launch {
             try {
-                // Actually persist to database via repository
+
                 val insertedId = cardRepository.insertCard(card.copy(
                     isCustom = true,
                     createdAt = System.currentTimeMillis()
@@ -104,7 +104,7 @@ class CardManagementViewModel(application: Application) : AndroidViewModel(appli
 
                 if (insertedId > 0) {
                     _message.value = "Card '${card.name}' created successfully"
-                    // Data will automatically update through Flow observation
+
                 } else {
                     _message.value = "Failed to create card"
                 }
@@ -136,10 +136,10 @@ class CardManagementViewModel(application: Application) : AndroidViewModel(appli
             try {
                 val success = cardRepository.deleteCard(card)
                 if (success) {
-                    // Also remove this card from any decks it's in
+
                     deckRepository.removeCardFromAllDecks(card.id)
                     _message.value = "Card '${card.name}' deleted successfully"
-                    // The flow will update the card list automatically
+
                 }
             } catch (e: Exception) {
                 _message.value = "Failed to delete card: ${e.message}"
@@ -149,13 +149,13 @@ class CardManagementViewModel(application: Application) : AndroidViewModel(appli
 
 
     private fun refreshCurrentView() {
-        // Reapply current filter
+
         when (currentFilter) {
             FilterType.ALL -> showAllCards()
             FilterType.MINIONS -> filterByType("minion")
             FilterType.SPELLS -> filterByType("spell")
             FilterType.CUSTOM -> filterByCustomStatus(true)
-            FilterType.RARITY -> _cards.value = originalCards // Keep current rarity filter
+            FilterType.RARITY -> _cards.value = originalCards
         }
     }
 

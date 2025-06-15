@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class CardEntity(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     val name: String,
-    val description: String = "", // Add this field
+    val description: String = "",
     val type: String,
     val manaCost: Int,
     val attack: Int?,

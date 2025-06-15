@@ -40,7 +40,7 @@ class CardManagementAdapter(
             cardType.text = card.type.capitalize()
             cardCost.text = card.manaCost.toString()
 
-            // Load card image
+
             val resourceId = itemView.context.resources.getIdentifier(
                 card.imageResName, "drawable", itemView.context.packageName
             )

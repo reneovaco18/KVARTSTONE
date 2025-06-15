@@ -12,7 +12,7 @@ import com.rench.kvartstone.domain.MinionCard
 import com.rench.kvartstone.domain.Turn
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.first  // ← ADD this import
+import kotlinx.coroutines.flow.first
 
 class HeroPowerRepository(private val context: Context) {
     private val heroPowerDao = AppDatabase.getDatabase(context).heroPowerDao()
@@ -27,7 +27,7 @@ class HeroPowerRepository(private val context: Context) {
             }
         }
     }
-    // Add this function to expose the count from the DAO
+
     suspend fun getActivePowerCount(): Int {
         return heroPowerDao.getActivePowerCount()
     }
@@ -74,8 +74,8 @@ class HeroPowerRepository(private val context: Context) {
             description = entity.description,
             cost        = entity.manaCost,
 
-            // ① use the **string** that is already stored in the DB
-            imageResName = entity.imageResName,               // <- changed
+
+            imageResName = entity.imageResName,
 
             effect      = createHeroPowerEffect(
                 entity.effectType,
@@ -107,7 +107,7 @@ class HeroPowerRepository(private val context: Context) {
                                 is MinionCard -> target.takeDamage(value)
                                 is Hero -> target.takeDamage(value)
                                 else -> {
-                                    // Default to enemy hero if no target specified
+
                                     if (engine.currentTurn == Turn.PLAYER) {
                                         engine.botHero.takeDamage(value)
                                     } else {
@@ -127,7 +127,7 @@ class HeroPowerRepository(private val context: Context) {
                         is MinionCard -> target.heal(value)
                         is Hero -> target.heal(value)
                         null -> {
-                            // Heal own hero
+
                             if (engine.currentTurn == Turn.PLAYER) {
                                 engine.playerHero.heal(value)
                             } else {
@@ -257,17 +257,17 @@ class HeroPowerRepository(private val context: Context) {
     )
     suspend fun refreshHeroPowers() {
         try {
-            // Clear existing powers synchronously
-            val existingPowers = heroPowerDao.getAllPowers().first()  // ← Get current list
+
+            val existingPowers = heroPowerDao.getAllPowers().first()
             existingPowers.forEach { power ->
-                heroPowerDao.deletePowerById(power.id)  // ← Delete each one
+                heroPowerDao.deletePowerById(power.id)
             }
 
-            // Insert fresh data from factory
+
             val allHeroPowers = HeroPowerFactory.getAllHeroPowers()
             val entities = allHeroPowers.map { power ->
                 HeroPowerEntity(
-                    id = power.id,  // ← Use the exact ID from factory
+                    id = power.id,
                     name = power.name,
                     description = power.description,
                     manaCost = power.cost,
@@ -288,7 +288,7 @@ class HeroPowerRepository(private val context: Context) {
         }
     }
 
-    // Helper methods to map factory data to DB schema
+    /
     private fun determineEffectType(id: Int) = when (id) {
         1 -> "damage"
         2 -> "heal"
@@ -310,7 +310,7 @@ class HeroPowerRepository(private val context: Context) {
         else -> "none"
     }
 
-    // UPDATED: Simple initialization that uses the factory
+
     suspend fun initializeDefaultHeroPowers() {
         try {
             val count = heroPowerDao.getActivePowerCount()

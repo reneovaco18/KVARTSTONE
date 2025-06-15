@@ -23,8 +23,29 @@ data class SpellCard(
 
     fun cast(engine: GameEngineInterface, explicit: List<Any> = emptyList()) {
         val targets = if (explicit.isNotEmpty()) explicit else autoTargets(engine)
+
+
+        println("Spell ${name} casting on ${targets.size} targets")
+        targets.forEach { target ->
+            println("Target: ${target::class.simpleName}")
+            when (target) {
+                is MinionCard -> println("  Minion: ${target.name}, Health: ${target.currentHealth}")
+                is Hero -> println("  Hero: ${target.name}, Health: ${target.currentHealth}")
+            }
+        }
+
+
         effect(engine, targets)
+
+
+        targets.forEach { target ->
+            when (target) {
+                is MinionCard -> println("  After effect - Minion Health: ${target.currentHealth}")
+                is Hero -> println("  After effect - Hero Health: ${target.currentHealth}")
+            }
+        }
     }
+
 
     fun requiresTarget() = targetingType in listOf(
         TargetingType.SINGLE_MINION,
@@ -33,18 +54,27 @@ data class SpellCard(
         TargetingType.SINGLE_CHARACTER
     )
 
+
     fun getValidTargets(engine: GameEngineInterface): List<Any> = when (targetingType) {
-        TargetingType.SINGLE_MINION          -> engine.playerBoard + engine.botBoard
-        TargetingType.SINGLE_FRIENDLY_MINION -> if (engine.currentTurn == Turn.PLAYER)
-            engine.playerBoard else engine.botBoard
-        TargetingType.SINGLE_ENEMY_MINION    -> if (engine.currentTurn == Turn.PLAYER)
-            engine.botBoard else engine.playerBoard
-        TargetingType.SINGLE_CHARACTER       -> if (engine.currentTurn == Turn.PLAYER)
-            engine.playerBoard + engine.botBoard + listOf(engine.botHero)
-        else
-            engine.playerBoard + engine.botBoard + listOf(engine.playerHero)
+        TargetingType.SINGLE_MINION ->
+            engine.playerBoard + engine.botBoard
+
+        TargetingType.SINGLE_FRIENDLY_MINION ->
+            if (engine.currentTurn == Turn.PLAYER) engine.playerBoard else engine.botBoard
+
+        TargetingType.SINGLE_ENEMY_MINION ->
+            if (engine.currentTurn == Turn.PLAYER) engine.botBoard else engine.playerBoard
+
+        TargetingType.SINGLE_CHARACTER ->
+            if (engine.currentTurn == Turn.PLAYER)
+                engine.playerBoard + engine.botBoard + listOf(engine.botHero)
+            else
+                engine.playerBoard + engine.botBoard + listOf(engine.playerHero)
+
         else -> emptyList()
     }
+
+
 
     /* ---------- helpers ---------- */
 

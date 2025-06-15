@@ -7,6 +7,9 @@ import com.rench.kvartstone.data.repositories.DeckRepository
 import com.rench.kvartstone.data.repositories.HeroPowerRepository
 import com.rench.kvartstone.domain.*
 import kotlinx.coroutines.launch
+import androidx.lifecycle.ProcessLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import com.rench.kvartstone.notification.NotificationHelper
 
 class GameViewModel(app: Application) : AndroidViewModel(app) {
 
@@ -16,6 +19,8 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     /* ---------- engine & repos ---------- */
+
+    private var lastPushedTurn: Turn? = null
 
     private lateinit var engine: ImprovedGameEngine
     private val heroPowerRepo = HeroPowerRepository(app)
@@ -43,7 +48,11 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     private val _playerMaxMana = MutableLiveData(1)
     val playerMaxMana: LiveData<Int> = _playerMaxMana
+    private val _botMana       = MutableLiveData(1)
+    val   botMana: LiveData<Int> = _botMana
 
+    private val _botMaxMana    = MutableLiveData(1)
+    val   botMaxMana: LiveData<Int> = _botMaxMana
     private val _turnNumber   = MutableLiveData(1)
     val turnNumber: LiveData<Int> = _turnNumber
 
@@ -67,10 +76,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     /* ---------- initialisation ---------- */
 
-    // ui/viewmodel/GameViewModel.kt
+
     fun initializeGame(heroPowerId: Int, deckId: Int) = viewModelScope.launch {
         val playerDeck = deckRepo.getDeckById(deckId) ?: return@launch
-        val botDeck    = deckRepo.getRandomDeckExcept(deckId) ?: playerDeck   // <- NEW
+        val botDeck    = deckRepo.getRandomDeckExcept(deckId) ?: playerDeck
 
         val playerHero = Hero(
             name      = "Player",
@@ -103,22 +112,22 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun selectMinion(index: Int?) {
-        // always clear any previous targeting highlight
+
         _validAttackTargets.value = emptyList()
 
-        // ─── NEW: validate the index first ──────────────────────────────
-        if (index == null || index < 0) {          // ① null OR –1 ⇒ nothing selected
+
+        if (index == null || index < 0) {
             _selectedMinion.value = null
             return
         }
         val board = _playerBoard.value ?: return
-        if (index !in board.indices) {             // ② outside current board
+        if (index !in board.indices) {
             _selectedMinion.value = null
             return
         }
-        // ────────────────────────────────────────────────────────────────
 
-        _selectedCard.value = null                      // deselect any hand card
+
+        _selectedCard.value = null
         _selectedMinion.value =
             if (_selectedMinion.value == index) null else index
 
@@ -198,7 +207,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         }
     }
 
-    /* ---------- boolean convenience ---------- */
+
 
     fun canPlayCard(pos: Int): Boolean {
         val hand = _playerHand.value ?: return false
@@ -216,7 +225,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
     }
 
     fun canUseHeroPower(): Boolean {
-        if (!::engine.isInitialized) return false   // ← NEW guard
+        if (!::engine.isInitialized) return false
         val heroPower = engine.playerHero.heroPower
         return heroPower.canUse(engine.playerMana)
     }
@@ -224,7 +233,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     fun heroPowerRequiresTarget(): Boolean {
         val hp = engine.playerHero.heroPower
-        return hp.id == 1        // only Fireblast needs a target for now
+        return hp.id == 1
     }
 
     fun validTargetsForHeroPower(): List<Any> =
@@ -243,7 +252,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         val minion = board.getOrNull(idx) ?: return emptyList()
         if (!minion.canAttack()) return emptyList()
 
-        // buildList returns an immutable List, so no reassignment of a MutableList is needed
+
         return buildList {
             addAll(engine.botBoard)
             add(engine.botHero)
@@ -264,9 +273,22 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         _playerMaxMana.value = engine.playerMaxMana
         _turnNumber.value  = engine.turnNumber
         _deckCount.value   = engine.playerDeck.size
+        _botMana.value        = engine.botMana
+        _botMaxMana.value     = engine.botMaxMana
+
+        if (lastPushedTurn == Turn.BOT && state.currentTurn == Turn.PLAYER) {
+
+            val inForeground = ProcessLifecycleOwner.get().lifecycle.currentState
+                .isAtLeast(Lifecycle.State.STARTED)
+            if (!inForeground) {
+                NotificationHelper.showYourTurn(getApplication())
+            }
+        }
+        lastPushedTurn = state.currentTurn
+
     }
 
-    /* ---------- fallback hero powers used only if repos missing ---------- */
+
 
     private fun defaultPlayerHeroPower() = HeroPower(
         id          = 1,
@@ -278,7 +300,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
             val realTarget = when (target) {
                 is List<*> -> target.firstOrNull()
                 else       -> target
-            } ?: eng.botHero                        // null ⇒ enemy hero
+            } ?: eng.botHero
 
             when (realTarget) {
                 is MinionCard -> realTarget.takeDamage(1)

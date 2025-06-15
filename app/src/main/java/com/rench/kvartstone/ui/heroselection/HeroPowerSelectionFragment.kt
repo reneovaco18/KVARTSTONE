@@ -67,7 +67,7 @@ class HeroPowerSelectionFragment : Fragment(R.layout.fragment_hero_power_selecti
     private fun setupClickListeners() {
         confirmButton.setOnClickListener {
             viewModel.selectedHeroPower.value?.let { heroPower ->
-                // Pass selected hero power to game setup
+
                 val bundle = Bundle().apply {
                     putInt("selectedHeroPowerId", heroPower.id)
                 }
@@ -77,7 +77,7 @@ class HeroPowerSelectionFragment : Fragment(R.layout.fragment_hero_power_selecti
     }
 }
 
-// Hero Power Selection Adapter
+
 class HeroPowerSelectionAdapter(
     private val onPowerSelected: (HeroPower) -> Unit
 ) : ListAdapter<HeroPower, HeroPowerSelectionAdapter.HeroPowerViewHolder>(HeroPowerDiffCallback()) {
@@ -98,7 +98,7 @@ class HeroPowerSelectionAdapter(
         val oldSelectedId = selectedPowerId
         selectedPowerId = heroPower?.id
 
-        // Notify changes for old and new selections
+
         oldSelectedId?.let { id ->
             val oldIndex = currentList.indexOfFirst { it.id == id }
             if (oldIndex != -1) notifyItemChanged(oldIndex)
@@ -121,18 +121,18 @@ class HeroPowerSelectionAdapter(
             powerDescription.text = heroPower.description
             powerCost.text = heroPower.cost.toString()
 
-            // Load power image
+
             val resourceId = itemView.context.resources.getIdentifier(
                 heroPower.imageResName, "drawable", itemView.context.packageName
             )
             powerImage.setImageResource(if (resourceId != 0) resourceId else R.drawable.ic_hero_power_default)
 
-            // Show selection state
+
             val isSelected = selectedPowerId == heroPower.id
             selectionIndicator.visibility = if (isSelected) View.VISIBLE else View.GONE
             itemView.isSelected = isSelected
 
-            // Set click listener
+
             itemView.setOnClickListener {
                 onPowerSelected(heroPower)
             }

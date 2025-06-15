@@ -27,7 +27,7 @@ class DeckSelectionViewModel(application: Application) : AndroidViewModel(applic
                     _decks.value = deckList
                 }
             } catch (e: Exception) {
-                // Create default decks if none exist
+
                 _decks.value = createDefaultDecks()
             }
         }
@@ -37,7 +37,7 @@ class DeckSelectionViewModel(application: Application) : AndroidViewModel(applic
         _selectedDeck.value = deck
     }
     fun deleteDeck(deck: Deck) = viewModelScope.launch {
-        deckRepository.deleteDeckById(deck.id)           // small helper in repo
+        deckRepository.deleteDeckById(deck.id)
     }
 
     private fun createDefaultDecks(): List<Deck> {
@@ -46,7 +46,7 @@ class DeckSelectionViewModel(application: Application) : AndroidViewModel(applic
                 id = 1,
                 name = "Basic Deck",
                 description = "A balanced starter deck",
-                cards = emptyList(), // Will be populated by repository
+                cards = emptyList(),
                 heroClass = "neutral"
             ),
             Deck(

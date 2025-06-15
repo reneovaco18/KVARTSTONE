@@ -18,7 +18,7 @@ import com.rench.kvartstone.ui.ext.loadCard
 class CardHandAdapter(
     private val onCardClick: (Int) -> Unit,
     private val canPlayCard: (Int) -> Boolean,
-    private val onCardLongClick: (Card) -> Unit, // <-- NEW
+    private val onCardLongClick: (Card) -> Unit,
     private val isCardSelected: (Int) -> Boolean
 ) : ListAdapter<Card, CardHandAdapter.CardViewHolder>(CardDiffCallback()) {
 
@@ -35,7 +35,7 @@ class CardHandAdapter(
     class CardViewHolder(
         itemView: View,
         private val onCardClick: (Int) -> Unit,
-        private val onCardLongClick: (Card) -> Unit, // <-- NEW
+        private val onCardLongClick: (Card) -> Unit,
         private val canPlayCard: (Int) -> Boolean,
         private val isCardSelected: (Int) -> Boolean
     ) : RecyclerView.ViewHolder(itemView) {
@@ -55,24 +55,24 @@ class CardHandAdapter(
                 }
             }
 
-            // Set up the long click listener
+
             itemView.setOnLongClickListener {
                 currentCard?.let { card ->
                     onCardLongClick(card)
                 }
-                true // Consume the event
+                true
             }
         }
         private var currentCard: Card? = null
         fun bind(card: Card, position: Int) {
-            this.currentCard = card // Store the card
+            this.currentCard = card
             val imageResId = itemView.context.resources.getIdentifier(card.imageResName, "drawable", itemView.context.packageName)
             cardImage.loadCard(card)
 
             cardName.text = card.name
             cardMana.text = card.manaCost.toString()
 
-            // Show/hide attack and health based on card type
+
             when (card) {
                 is MinionCard -> {
                     cardAttack.visibility = View.VISIBLE
@@ -80,7 +80,7 @@ class CardHandAdapter(
                     cardAttack.text = card.attack.toString()
                     cardHealth.text = card.maxHealth.toString()
 
-                    // Show divine shield indicator
+
                     if (card.hasDivineShield) {
                         cardView.setCardBackgroundColor(itemView.context.getColor(R.color.divine_shield_gold))
                     }
@@ -92,7 +92,7 @@ class CardHandAdapter(
                 }
             }
 
-            // Visual feedback for playability and selection
+
             val canPlay = canPlayCard(position)
             val selected = isCardSelected(position)
 

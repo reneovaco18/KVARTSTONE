@@ -20,7 +20,7 @@ class HeroPowerSelectionViewModel(application: Application) : AndroidViewModel(a
 
     fun loadAvailableHeroPowers() {
         viewModelScope.launch {
-            // Force refresh to ensure we have the latest data
+
             heroPowerRepository.refreshHeroPowers()
 
             heroPowerRepository.allHeroPowers.collect { powers ->

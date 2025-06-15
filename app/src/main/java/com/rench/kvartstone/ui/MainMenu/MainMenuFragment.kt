@@ -27,7 +27,7 @@ class MainMenuFragment : Fragment(R.layout.fragment_main_menu) {
             findNavController().navigate(R.id.action_mainMenu_to_deckBuilder)
         }
 
-        // Initialize default data if needed
+
         lifecycleScope.launch {
             initializeDefaultData()
         }
@@ -38,7 +38,7 @@ class MainMenuFragment : Fragment(R.layout.fragment_main_menu) {
         val deckRepo = DeckRepository(requireContext())
         val cardRepo = CardRepository(requireContext())
 
-        // Initialize default content
+
         heroPowerRepo.initializeDefaultHeroPowers()
         deckRepo.initializeDefaultDecks()
         cardRepo.initializeDefaultCards()

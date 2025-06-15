@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.map
 import org.json.JSONArray
 import org.json.JSONException
 import com.rench.kvartstone.data.entities.CardEntity
-// FIXED: Now uses actual card IDs from database instead of hardcoded values
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
@@ -29,11 +29,10 @@ class DeckRepository(private val context: Context) {
             }
         }
     }
-    // data/repositories/DeckRepository.kt
-    // random deck helper
+
     suspend fun getRandomDeckExcept(excludeId: Int): Deck? =
         deckDao.getAllDecksOnce()
-            .mapNotNull { entityToDomain(it) }   // ← was it.toDomain()
+            .mapNotNull { entityToDomain(it) }
             .filter   { it.id != excludeId }
             .randomOrNull()
 
@@ -122,7 +121,7 @@ class DeckRepository(private val context: Context) {
         return try {
             val cardIds = deck.cards.map { it.id }
             val deckEntity = DeckEntity(
-                id = if (deck.id > 0) deck.id else 0, // Let database auto-generate if id is 0
+                id = if (deck.id > 0) deck.id else 0,
                 name = deck.name,
                 description = deck.description,
                 heroClass = deck.heroClass,
@@ -204,7 +203,7 @@ class DeckRepository(private val context: Context) {
         try {
             if (deckDao.getDeckCount() > 0) return
 
-            // Get ALL card IDs from database
+
             val cardIds = cardRepository.getAllCardsAsEntity()
                 .firstOrNull()
                 ?.map { it.id }
@@ -235,7 +234,7 @@ class DeckRepository(private val context: Context) {
 
 
 
-    // In DeckRepository.kt
+
 
     suspend fun removeCardFromAllDecks(cardId: Int) {
         withContext(Dispatchers.IO) {
@@ -258,9 +257,7 @@ class DeckRepository(private val context: Context) {
         }
     }
 
-    /**
-     * Create a balanced 30-card deck from available card IDs
-     */
+
     private fun createBalancedDeck(availableCardIds: List<Int>, deckType: String): List<Int> {
         if (availableCardIds.isEmpty()) {
             Log.w("DeckRepository", "No cards available for deck creation")
@@ -272,21 +269,21 @@ class DeckRepository(private val context: Context) {
 
         when (deckType) {
             "basic" -> {
-                // Create a balanced deck with 2 copies of each card, cycling through available cards
+
                 var cardIndex = 0
                 repeat(targetSize) {
                     deckCards.add(availableCardIds[cardIndex % availableCardIds.size])
-                    // Add each card twice before moving to next
+
                     if ((it + 1) % 2 == 0) {
                         cardIndex++
                     }
                 }
             }
             "aggressive" -> {
-                // Create an aggressive deck favoring lower cost cards (assuming lower IDs = lower cost)
+
                 var cardIndex = 0
                 repeat(targetSize) {
-                    // Favor earlier cards more heavily for aggressive deck
+
                     val weightedIndex = if (cardIndex < availableCardIds.size / 2) {
                         cardIndex % (availableCardIds.size / 2)
                     } else {
@@ -297,7 +294,7 @@ class DeckRepository(private val context: Context) {
                 }
             }
             else -> {
-                // Default: evenly distribute available cards
+
                 repeat(targetSize) {
                     deckCards.add(availableCardIds[it % availableCardIds.size])
                 }

@@ -23,14 +23,14 @@ object DatabaseDebugUtils {
             report.databaseConnectable = checkDatabaseConnectivity(context)
 
             if (report.databaseConnectable) {
-                // These calls will now work because the methods are defined in the repositories
+
                 val cardRepo = CardRepository(context)
                 val deckRepo = DeckRepository(context)
                 val heroPowerRepo = HeroPowerRepository(context)
 
                 report.cardCount = cardRepo.getCardCount()
                 report.deckCount = deckRepo.getDeckCount()
-                report.heroPowerCount = heroPowerRepo.getActivePowerCount() // FIXED
+                report.heroPowerCount = heroPowerRepo.getActivePowerCount()
 
                 report.hasDefaultData = report.cardCount > 0 && report.deckCount > 0
                 report.sampleDataValid = verifySampleData(cardRepo, deckRepo)
@@ -64,12 +64,11 @@ object DatabaseDebugUtils {
 
     private suspend fun verifySampleData(cardRepo: CardRepository, deckRepo: DeckRepository): Boolean {
         return try {
-            // These calls to getAllCards() and getAllDecks() are now resolved
-            val cards = cardRepo.allCards.firstOrNull() // FIXED
-            val decks = deckRepo.allDecks.firstOrNull() // FIXED
 
-            // **FIX FOR AMBIGUITY ERROR**: Use a 'let' block to handle the nullable list.
-            // This creates a non-nullable scope ('cardList') for the 'any' function.
+            val cards = cardRepo.allCards.firstOrNull()
+            val decks = deckRepo.allDecks.firstOrNull()
+
+
             val hasValidCards = cards?.let { cardList ->
                 cardList.any { card -> card.name.isNotBlank() }
             } ?: false
@@ -111,7 +110,7 @@ object DatabaseDebugUtils {
     }
 }
 
-// Data classes remain the same
+
 data class DatabaseHealthReport(
     var databaseFileExists: Boolean = false,
     var databaseConnectable: Boolean = false,

@@ -29,9 +29,9 @@ class CardDetailFragment : DialogFragment() {
         val hpTxt       = view.findViewById<TextView>(R.id.cardDetailHealth)
         val closeBtn    = view.findViewById<Button>(R.id.backButton)
 
-        // populate fields
+
         name.text = card.name
-        cardImage.loadCard(card)  // Load the actual card image or placeholder
+        cardImage.loadCard(card)
         manaCostTxt.text = "Mana Cost: ${card.manaCost}"
         typeTxt.text = "Type: ${card::class.simpleName?.replace("Card", "")}"
 
@@ -58,7 +58,7 @@ class CardDetailFragment : DialogFragment() {
     override fun onStart() {
         super.onStart()
 
-        // Make dialog take up most of the screen
+
         val displayMetrics = resources.displayMetrics
         val width = (displayMetrics.widthPixels * 0.95).toInt()
         val height = (displayMetrics.heightPixels * 0.90).toInt()

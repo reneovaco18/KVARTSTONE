@@ -1,6 +1,6 @@
 package com.rench.kvartstone.domain
 
-import kotlin.random.Random
+
 import kotlinx.coroutines.*
 
 class ImprovedGameEngine(
@@ -32,12 +32,12 @@ class ImprovedGameEngine(
     override var playerWon = false
     var isProcessingTurn = false
 
-    // Effect queues for proper sequencing
+
     private val battlecryQueue = mutableListOf<() -> Unit>()
     private val deathrattleQueue = mutableListOf<() -> Unit>()
     private val endTurnEffects = mutableListOf<() -> Unit>()
 
-    // AI decision making components
+
     private val aiEvaluator = AIEvaluator(this)
 
     init {
@@ -47,17 +47,17 @@ class ImprovedGameEngine(
 
     private fun startGame() {
         gamePhase = GamePhase.MULLIGAN
-        // Initial draw with mulligan option
+
         repeat(3) { drawCardForPlayer() }
         repeat(4) { drawCardForBot() }
 
-        // Skip mulligan for now, go straight to game
+
         gamePhase = GamePhase.MAIN_GAME
     }
 
     override fun drawCardForPlayer(): Card? {
         if (playerDeck.isEmpty()) {
-            // Fatigue damage
+
             playerHero.takeDamage(playerHand.size + 1)
             return null
         }
@@ -71,7 +71,7 @@ class ImprovedGameEngine(
 
     override fun drawCardForBot(): Card? {
         if (botDeck.isEmpty()) {
-            // Fatigue damage
+
             botHero.takeDamage(botHand.size + 1)
             return null
         }
@@ -109,9 +109,9 @@ class ImprovedGameEngine(
         return true
     }
 
-    // Add the missing attack method that implements the interface
+
     override fun attack(attacker: MinionCard, target: Any): Boolean {
-        // The existing performAttack method handles this perfectly.
+
         return performAttack(attacker, target)
     }
 
@@ -120,10 +120,10 @@ class ImprovedGameEngine(
         minion.canAttackThisTurn = false
         board.add(minion)
 
-        // Queue battlecry effect
+
         minion.battlecryEffect?.let { effect ->
             battlecryQueue.add {
-                effect.invoke(this, emptyList()) // Can be enhanced for targeting
+                effect.invoke(this, emptyList())
             }
         }
     }
@@ -154,22 +154,22 @@ class ImprovedGameEngine(
         }
     }
 
-    // Enhanced AI Turn Processing
+
     suspend fun processBotTurn() {
         if (currentTurn != Turn.BOT || isProcessingTurn) return
 
         isProcessingTurn = true
-        delay(500) // Visual delay for player
+        delay(500)
 
         try {
             val aiDecisions = aiEvaluator.planTurn(botHand, botBoard, playerBoard, botMana)
 
-            // Execute AI decisions in order
+
             for (decision in aiDecisions) {
                 when (decision) {
                     is AIDecision.PlayCard -> {
                         if (botPlayCard(decision.cardIndex, decision.target)) {
-                            delay(300) // Animation time
+                            delay(300)
                         }
                     }
                     is AIDecision.Attack -> {
@@ -183,12 +183,12 @@ class ImprovedGameEngine(
                         }
                     }
                     is AIDecision.EndTurn -> {
-                        // End turn will be handled automatically
+
                     }
                 }
             }
 
-            // Use remaining mana efficiently
+
             while (aiEvaluator.canPlayMoreCards(botHand, botMana)) {
                 val bestCard = aiEvaluator.findBestPlayableCard(botHand, botMana)
                 if (bestCard != null && botPlayCard(bestCard, null)) {
@@ -198,7 +198,7 @@ class ImprovedGameEngine(
                 }
             }
 
-            // Attack with available minions
+
             val availableAttackers = botBoard.filter { it.canAttack() }
             for (attacker in availableAttackers) {
                 val bestTarget = aiEvaluator.findBestAttackTarget(attacker, playerBoard, playerHero)
@@ -263,7 +263,7 @@ class ImprovedGameEngine(
 
         when (target) {
             is MinionCard -> {
-                // Handle divine shield
+
                 if (target.hasDivineShield) {
                     target.hasDivineShield = false
                 } else {
@@ -273,7 +273,7 @@ class ImprovedGameEngine(
                     }
                 }
 
-                // Attacker takes damage back
+
                 if (attacker.hasDivineShield) {
                     attacker.hasDivineShield = false
                 } else {
@@ -301,20 +301,20 @@ class ImprovedGameEngine(
     private fun queueDeathrattle(minion: MinionCard) {
         minion.deathrattleEffect?.let { effect ->
             deathrattleQueue.add {
-                effect.invoke(this, emptyList())   // ← second parameter added
+                effect.invoke(this, emptyList())
             }
         }
     }
 
 
     private fun processEffectQueues() {
-        // Process battlecries first
+
         while (battlecryQueue.isNotEmpty()) {
             val effect = battlecryQueue.removeAt(0)
             effect.invoke()
         }
 
-        // Then process deathrattles
+
         while (deathrattleQueue.isNotEmpty()) {
             val effect = deathrattleQueue.removeAt(0)
             effect.invoke()
@@ -330,12 +330,12 @@ class ImprovedGameEngine(
         deadBotMinions.forEach { queueDeathrattle(it) }
         botBoard.removeAll { it.isDead() }
 
-        // Process any new deathrattles
+
         processEffectQueues()
     }
 
     override fun endTurn() {
-        // Process end of turn effects
+
         while (endTurnEffects.isNotEmpty()) {
             val effect = endTurnEffects.removeAt(0)
             effect.invoke()
@@ -351,17 +351,17 @@ class ImprovedGameEngine(
                 currentTurn = Turn.PLAYER
                 turnNumber++
 
-                // Increase mana
+
                 playerMaxMana = minOf(playerMaxMana + 1, 10)
                 botMaxMana = minOf(botMaxMana + 1, 10)
                 playerMana = playerMaxMana
                 botMana = botMaxMana
 
-                // Draw cards
+
                 drawCardForPlayer()
                 drawCardForBot()
 
-                // Reset for new turn
+
                 playerBoard.forEach { it.resetForNewTurn() }
                 botHero.resetHeroPower()
             }
@@ -392,7 +392,7 @@ class ImprovedGameEngine(
         gamePhase = GamePhase.GAME_OVER
     }
 
-    // Additional helper methods for the UI
+
     fun getGameState(): GameState {
         return GameState(
             currentTurn = currentTurn,

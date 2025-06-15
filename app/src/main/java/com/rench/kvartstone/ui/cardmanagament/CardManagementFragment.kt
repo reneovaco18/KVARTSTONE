@@ -1,4 +1,3 @@
-// Card Management Fragment for CRUD operations
 package com.rench.kvartstone.ui.cardmanagement
 
 import android.app.Activity
@@ -28,7 +27,7 @@ class CardManagementFragment : Fragment(R.layout.fragment_card_management) {
     private lateinit var filterSpinner: Spinner
     private lateinit var fabAddCard: FloatingActionButton
 
-    // Image picker launcher
+
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -55,7 +54,7 @@ class CardManagementFragment : Fragment(R.layout.fragment_card_management) {
         filterSpinner = view.findViewById(R.id.filterSpinner)
         fabAddCard = view.findViewById(R.id.fabAddCard)
 
-        // Add back button
+
         view.findViewById<ImageButton>(R.id.backButton).setOnClickListener {
             findNavController().navigateUp()
         }
@@ -77,7 +76,7 @@ class CardManagementFragment : Fragment(R.layout.fragment_card_management) {
     }
 
     private fun setupSearchAndFilter() {
-        // Setup search functionality
+
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query?.let {
@@ -102,13 +101,13 @@ class CardManagementFragment : Fragment(R.layout.fragment_card_management) {
             }
         })
 
-        // Add close listener for search view
+
         searchView.setOnCloseListener {
             viewModel.showAllCards()
             false
         }
 
-        // Setup filter spinner
+
         val filterOptions = arrayOf("All Cards", "Minions", "Spells", "Custom Cards", "By Rarity")
         val spinnerAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, filterOptions)
         spinnerAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)

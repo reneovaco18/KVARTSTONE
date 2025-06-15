@@ -98,7 +98,7 @@ class MinionBoardAdapter(
                 }
             }
 
-            // Divine Shield visual effect
+
             divineShieldIndicator?.visibility = if (minion.hasDivineShield) View.VISIBLE else View.GONE
             if (minion.hasDivineShield) {
                 cardView.setCardBackgroundColor(itemView.context.getColor(R.color.divine_shield_gold))
@@ -106,11 +106,11 @@ class MinionBoardAdapter(
                 cardView.setCardBackgroundColor(itemView.context.getColor(R.color.minion_brown))
             }
 
-            // Summoning sickness or has attacked
+
             summonsicknessIndicator?.visibility = if (minion.summoned || minion.hasAttackedThisTurn) View.VISIBLE else View.GONE
 
-            // Selection highlight
-            if (isSelected) { // FIX: Use the 'isSelected' variable
+
+            if (isSelected) {
                 cardView.setCardBackgroundColor(
                     itemView.context.getColor(R.color.selected_green)
                 )
@@ -119,7 +119,7 @@ class MinionBoardAdapter(
                 cardView.cardElevation = 4f
             }
 
-            // Health color coding
+
             when {
                 minion.currentHealth <= 0 -> {
                     minionHealth.setTextColor(itemView.context.getColor(R.color.dead_red))
@@ -132,13 +132,13 @@ class MinionBoardAdapter(
                 }
             }
 
-            // Attack color coding for buffed minions
-            if (minion.attack > minion.id % 10) { // Simple heuristic for base attack
+
+            if (minion.attack > minion.id % 10) {
                 minionAttack.setTextColor(itemView.context.getColor(R.color.buffed_blue))
             } else {
                 minionAttack.setTextColor(itemView.context.getColor(R.color.attack_red))
             }
-            itemView.isClickable = true// <- new code
+            itemView.isClickable = true
 
         }
     }

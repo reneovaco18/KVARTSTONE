@@ -9,7 +9,7 @@ data class DeckEntity(
     val name: String,
     val description: String,
     val heroClass: String,
-    val cardIds: String, // JSON string of card IDs
+    val cardIds: String,
     val isCustom: Boolean = false,
     val createdAt: Long = System.currentTimeMillis()
 )

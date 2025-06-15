@@ -43,13 +43,13 @@ class DeckBuilderCardAdapter(
             cardCost.text = card.manaCost.toString()
             cardType.text = card.type.replaceFirstChar { it.uppercase() }
 
-            // Load card image with fallback
+
             val resourceId = itemView.context.resources.getIdentifier(
                 card.imageResName, "drawable", itemView.context.packageName
             )
             cardImage.loadCard(card)
 
-            // Display stats for minion cards
+
             if (card.type == "minion" && card.attack != null && card.health != null) {
                 cardStats.visibility = View.VISIBLE
                 cardStats.text = "${card.attack}/${card.health}"
@@ -57,7 +57,7 @@ class DeckBuilderCardAdapter(
                 cardStats.visibility = View.GONE
             }
 
-            // Show count indicator for cards in deck
+
             val countInDeck = getCardCount(card)
             if (countInDeck > 0) {
                 cardCount.visibility = View.VISIBLE
@@ -68,11 +68,11 @@ class DeckBuilderCardAdapter(
                 cardView.setCardBackgroundColor(itemView.context.getColor(R.color.card_default))
             }
 
-            // Set interaction listeners
+
             itemView.setOnClickListener { onCardClick(card) }
             itemView.setOnLongClickListener { onCardLongClick(card); true }
 
-            // Visual theming based on card type
+
             when (card.type) {
                 "minion" -> cardView.setCardBackgroundColor(
                     if (countInDeck > 0) itemView.context.getColor(R.color.minion_in_deck)

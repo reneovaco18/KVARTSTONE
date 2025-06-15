@@ -301,5 +301,5 @@ object CardFactory {
         createBasicMinion(15, "Raid Leader",           3, 2, 2)
     )
 
-    fun createBotDeck(): List<Card> = createPlayerDeck() // identical for now
+    fun createBotDeck(): List<Card> = createPlayerDeck()
 }

@@ -3,7 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Android 14+ “scoped storage” READ permission -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <!-- Notifications from API 33+ -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
 
     <application
         android:name=".KvartstoneApplication"
@@ -16,6 +23,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.KvartStone"
         tools:targetApi="31">
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -28,5 +36,35 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- I5 BroadcastReceivers -->
+        <receiver
+            android:name=".receiver.NetworkChangeReceiver"
+            android:exported="false"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.net.conn.CONNECTIVITY_CHANGE" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".receiver.BootCompleteReceiver"
+            android:exported="false"
+            android:enabled="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
+            android:name=".receiver.DailyReminderReceiver"
+            android:exported="false" />
+
+        <!-- I6 Notification Service -->
+        <service
+            android:name=".service.GameNotificationService"
+            android:exported="false" />
     </application>
 </manifest>

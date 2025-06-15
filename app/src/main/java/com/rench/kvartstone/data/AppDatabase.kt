@@ -37,7 +37,7 @@ abstract class AppDatabase : RoomDatabase() {
         private var isInitialized = false
         private val initializationLock = Object()
 
-        // Move the method to companion object
+
         suspend fun waitForInitialization(timeoutSeconds: Int): Boolean {
             return withContext(Dispatchers.IO) {
                 val startTime = System.currentTimeMillis()
@@ -62,12 +62,12 @@ abstract class AppDatabase : RoomDatabase() {
 
         private val MIGRATION_4_5 = object : Migration(4, 5) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                // Check if column exists before adding it
+
                 val cursor = db.query("PRAGMA table_info(cards)")
                 var columnExists = false
 
                 while (cursor.moveToNext()) {
-                    val columnName = cursor.getString(1) // Column name is at index 1
+                    val columnName = cursor.getString(1)
                     if (columnName == "description") {
                         columnExists = true
                         break
@@ -93,7 +93,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "kvartstone_database"
                 )
                     .addMigrations(MIGRATION_4_5)
-                    .fallbackToDestructiveMigration()   // drop & recreate for 5→6 (or older)
+                    .fallbackToDestructiveMigration()
                     .addCallback(AppDatabaseCallback(context))
                     .build()
                 INSTANCE = instance

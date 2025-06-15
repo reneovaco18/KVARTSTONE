@@ -43,7 +43,7 @@ class DeckSelectionFragment : Fragment(R.layout.fragment_deck_selection) {
     private fun setupRecyclerView() {
         deckAdapter = DeckSelectionAdapter(
             onDeckSelected = { deck -> viewModel.selectDeck(deck) },
-            onDeckLongHeld = { deck -> askDelete(deck) }     // NEW
+            onDeckLongHeld = { deck -> askDelete(deck) }
         )
 
 
@@ -69,7 +69,7 @@ class DeckSelectionFragment : Fragment(R.layout.fragment_deck_selection) {
             .setMessage(getString(R.string.delete_deck_msg, deck.name))
             .setNegativeButton(R.string.cancel, null)
             .setPositiveButton(R.string.delete) { _, _ ->
-                viewModel.deleteDeck(deck)               // NEW VM call
+                viewModel.deleteDeck(deck)
             }
             .show()
     }
@@ -80,9 +80,9 @@ class DeckSelectionFragment : Fragment(R.layout.fragment_deck_selection) {
                 val bundle = Bundle().apply {
                     putInt("heroPowerId", heroPowerId)
                     putInt("deckId", deck.id)
-                    putInt("difficulty", 2) // Default normal difficulty
+                    putInt("difficulty", 2)
                 }
-                // Navigate directly to game play fragment
+
                 findNavController().navigate(R.id.action_deckSelection_to_gamePlayFragment, bundle)
             }
         }
