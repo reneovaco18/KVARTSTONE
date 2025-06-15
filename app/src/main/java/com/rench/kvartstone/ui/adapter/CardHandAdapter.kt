@@ -13,6 +13,7 @@ import com.rench.kvartstone.R
 import com.rench.kvartstone.domain.Card
 import com.rench.kvartstone.domain.MinionCard
 import com.rench.kvartstone.domain.SpellCard
+import com.rench.kvartstone.ui.ext.loadCard
 
 class CardHandAdapter(
     private val onCardClick: (Int) -> Unit,
@@ -41,7 +42,7 @@ class CardHandAdapter(
 
 
         private val cardView: CardView = itemView as CardView
-        private val cardImage: ImageView = itemView.findViewById(R.id.cardImage)
+        private val cardImage: ImageView = itemView.findViewById(R.id.cardArt)
         private val cardName: TextView = itemView.findViewById(R.id.cardName)
         private val cardMana: TextView = itemView.findViewById(R.id.cardMana)
         private val cardAttack: TextView = itemView.findViewById(R.id.cardAttack)
@@ -66,7 +67,7 @@ class CardHandAdapter(
         fun bind(card: Card, position: Int) {
             this.currentCard = card // Store the card
             val imageResId = itemView.context.resources.getIdentifier(card.imageResName, "drawable", itemView.context.packageName)
-            cardImage.setImageResource(if (imageResId != 0) imageResId else R.drawable.ic_card_generic)
+            cardImage.loadCard(card)
 
             cardName.text = card.name
             cardMana.text = card.manaCost.toString()

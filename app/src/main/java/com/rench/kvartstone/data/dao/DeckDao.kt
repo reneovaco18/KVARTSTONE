@@ -25,7 +25,8 @@ interface DeckDao {
 
     @Query("SELECT * FROM decks WHERE name LIKE '%' || :searchQuery || '%' OR description LIKE '%' || :searchQuery || '%'")
     fun searchDecks(searchQuery: String): Flow<List<DeckEntity>>
-
+    @Query("SELECT * FROM decks")
+    suspend fun getAllDecksOnce(): List<DeckEntity>
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDeck(deck: DeckEntity): Long
 

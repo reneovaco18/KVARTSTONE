@@ -5,6 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.rench.kvartstone.data.dao.DeckDao
 import com.rench.kvartstone.data.repositories.DeckRepository
 import com.rench.kvartstone.domain.Deck
 import kotlinx.coroutines.launch
@@ -34,6 +35,9 @@ class DeckSelectionViewModel(application: Application) : AndroidViewModel(applic
 
     fun selectDeck(deck: Deck) {
         _selectedDeck.value = deck
+    }
+    fun deleteDeck(deck: Deck) = viewModelScope.launch {
+        deckRepository.deleteDeckById(deck.id)           // small helper in repo
     }
 
     private fun createDefaultDecks(): List<Deck> {

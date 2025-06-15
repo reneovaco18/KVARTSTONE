@@ -67,9 +67,10 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
 
     /* ---------- initialisation ---------- */
 
+    // ui/viewmodel/GameViewModel.kt
     fun initializeGame(heroPowerId: Int, deckId: Int) = viewModelScope.launch {
         val playerDeck = deckRepo.getDeckById(deckId) ?: return@launch
-        val botDeck    = deckRepo.getDeckById(1) ?: playerDeck
+        val botDeck    = deckRepo.getRandomDeckExcept(deckId) ?: playerDeck   // <- NEW
 
         val playerHero = Hero(
             name      = "Player",
@@ -83,6 +84,7 @@ class GameViewModel(app: Application) : AndroidViewModel(app) {
         engine = ImprovedGameEngine(playerDeck.cards, botDeck.cards, playerHero, botHero)
         pushStateToUi()
     }
+
 
     /* ---------- public helpers called from the fragment ---------- */
 

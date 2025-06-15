@@ -2,4 +2,17 @@
     <string name="app_name">KvartStone</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="card_image">Card image</string>      <!-- NEW -->
+    <!-- res/values/strings.xml -->
+    <string name="delete_deck_title">Delete deck?</string>
+    <string name="delete_deck_msg">Do you really want to delete “%1$s”?</string>
+    <string name="mana_cost_fmt">Mana Cost: %1$d</string>
+    <string name="card_type_fmt">Type: %1$s</string>
+    <string name="card_id_fmt">ID: %1$d</string>
+    <string name="attack_fmt">Attack: %1$d</string>
+    <string name="health_fmt">Health: %1$d</string>
+
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+
 </resources>

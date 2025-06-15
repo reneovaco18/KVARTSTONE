@@ -20,6 +20,15 @@
             android:layout_marginBottom="16dp" />
 
         <!-- Image Preview -->
+        <!-- ✦ NEW preview container for CardDetailFragment ✦ -->
+        <FrameLayout
+            android:id="@+id/previewContainer"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_gravity="center"
+            android:background="@drawable/card_preview_border"
+            android:layout_marginBottom="12dp"/>
+        <!-- ─── ❶ miniature image preview (used by the Select-Image button) ─── -->
         <ImageView
             android:id="@+id/cardImagePreview"
             android:layout_width="120dp"
@@ -28,7 +37,29 @@
             android:scaleType="centerCrop"
             android:src="@drawable/ic_card_minion_generic"
             android:background="@drawable/card_preview_border"
-            android:layout_marginBottom="8dp" />
+            android:layout_marginBottom="12dp"/>
+
+        <!-- ─── ❷ effect-picker group (hidden unless type == Spell) ─── -->
+        <LinearLayout
+            android:id="@+id/effectGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:visibility="gone"
+            android:layout_marginBottom="12dp">
+
+            <Spinner
+                android:id="@+id/effectTypeSpinner"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"/>
+
+            <NumberPicker
+                android:id="@+id/effectValuePicker"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+        </LinearLayout>
 
         <!-- Select Image Button -->
         <Button

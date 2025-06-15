@@ -57,6 +57,8 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     implementation("io.coil-kt:coil:2.6.0")
 
+    implementation("io.coil-kt:coil-base:2.6.0") // <-- add for uri/file
+
     // Navigation
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
@@ -76,7 +78,7 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
-    implementation ("com.google.android.material:material:1.9.0")
+
     implementation ("androidx.cardview:cardview:1.0.0")
     implementation ("com.google.code.gson:gson:2.10.1")
 

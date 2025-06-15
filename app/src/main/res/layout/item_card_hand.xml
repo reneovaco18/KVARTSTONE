@@ -6,7 +6,7 @@
     android:layout_margin="3dp"
     app:cardCornerRadius="8dp"
     app:cardElevation="4dp">
-
+    <include layout="@layout/view_card_art"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -32,14 +32,7 @@
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
-            <!-- Card Image -->
-            <ImageView
-                android:id="@+id/cardImage"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_margin="4dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_card_minion_generic" />
+
 
         </FrameLayout>
 

@@ -199,8 +199,11 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
             }
         }
         handToggle.setOnClickListener { toggleHand() }
-        botHeroHealth.setOnClickListener { onBotHeroClick() }
+        // hero portraits ----------------------------------------------------
+        botHeroHealth   .setOnClickListener { onBotHeroClick() }
         playerHeroHealth.setOnClickListener { onPlayerHeroClick() }
+        view?.findViewById<CardView>(R.id.enemyHeroCard)
+            ?.setOnClickListener { onBotHeroClick() }
     }
 
     private fun onCardClick(pos: Int) {
@@ -245,9 +248,24 @@ class GamePlayFragment : Fragment(R.layout.fragment_game_play) {
     private fun onPlayerHeroClick() = heroClick(vm.playerHero.value)
     private fun heroClick(hero: Hero?) {
         hero ?: return
-        if (awaitingHeroPower)    fireHeroPower(hero)
-        else if (awaitingTarget && validTargets.contains(hero)) {
-            vm.playSelectedCard(hero); clearTargeting()
+
+        if (awaitingHeroPower) {                      // hero power targeting
+            fireHeroPower(hero)
+            return
+        }
+
+        if (awaitingTarget && validTargets.contains(hero)) {   // spell targeting
+            vm.playSelectedCard(hero)
+            clearTargeting()
+            return
+        }
+
+        // -------- NEW: minion → hero attack routing --------
+        if (vm.selectedMinion.value != null &&
+            vm.validAttackTargets.value?.contains(hero) == true) {
+
+            vm.attackWithSelectedMinion(hero)
+            clearSelections()
         }
     }
     private fun fireHeroPower(target: Any) {

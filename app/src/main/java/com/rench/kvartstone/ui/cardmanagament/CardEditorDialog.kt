@@ -12,8 +12,13 @@ import androidx.fragment.app.DialogFragment
 import coil.load
 import com.rench.kvartstone.R
 import com.rench.kvartstone.data.entities.CardEntity
+import com.rench.kvartstone.domain.SpellEffect
+import com.rench.kvartstone.ui.fragments.CardDetailFragment
 import com.rench.kvartstone.utils.ImageStorageManager
 import java.io.File
+import com.rench.kvartstone.data.repositories.CardRepository
+import com.rench.kvartstone.ui.ext.CardMapper
+import com.rench.kvartstone.ui.ext.loadCard
 
 class CardEditorDialog : DialogFragment() {
 
@@ -29,7 +34,11 @@ class CardEditorDialog : DialogFragment() {
     private var existingCard: CardEntity? = null
     private var onSaveCallback: ((CardEntity) -> Unit)? = null
     private var selectedImageUri: Uri? = null
-
+    private lateinit var effectGroup     : LinearLayout
+    private lateinit var effectTypeSpinner: Spinner
+    private lateinit var effectValuePicker: NumberPicker
+    private lateinit var previewContainer : FrameLayout
+    private var previewFragment: CardDetailFragment? = null
     private lateinit var nameInput: EditText
     private lateinit var descriptionInput: EditText
     private lateinit var typeSpinner: Spinner
@@ -45,6 +54,8 @@ class CardEditorDialog : DialogFragment() {
     private lateinit var selectImageButton: Button
     private lateinit var saveButton: Button
     private lateinit var cancelButton: Button
+    // add fields
+
 
     private val imagePickerLauncher = registerForActivityResult(
         ActivityResultContracts.GetContent()
@@ -58,9 +69,23 @@ class CardEditorDialog : DialogFragment() {
             }
         }
     }
+    override fun onStart() {
+        super.onStart()
+
+        // Set dialog to 90% width and 80% height
+        val displayMetrics = resources.displayMetrics
+        val width = (displayMetrics.widthPixels * 0.90).toInt()
+        val height = (displayMetrics.heightPixels * 0.80).toInt()
+
+        dialog?.window?.setLayout(width, height)
+    }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         return inflater.inflate(R.layout.dialog_card_editor, container, false)
+    }
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setStyle(STYLE_NORMAL, R.style.FullWidthDialog)
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -99,9 +124,24 @@ class CardEditorDialog : DialogFragment() {
         selectImageButton = view.findViewById(R.id.btn_select_image)
         saveButton = view.findViewById(R.id.saveButton)
         cancelButton = view.findViewById(R.id.cancelButton)
+        previewContainer    = view.findViewById(R.id.previewContainer)
+        effectGroup         = view.findViewById(R.id.effectGroup)
+        effectTypeSpinner   = view.findViewById(R.id.effectTypeSpinner)
+        effectValuePicker   = view.findViewById(R.id.effectValuePicker)
+
     }
 
     private fun setupSpinners() {
+        // effect spinner
+        val effects = arrayOf("None", "Deal Damage", "Heal Hero")
+        effectTypeSpinner.adapter =
+            ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, effects).apply {
+                setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+            }
+
+        effectValuePicker.minValue = 1
+        effectValuePicker.maxValue = 10
+
         val types = arrayOf("Minion", "Spell")
         val typeAdapter = ArrayAdapter(requireContext(), android.R.layout.simple_spinner_item, types)
         typeAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
@@ -114,11 +154,61 @@ class CardEditorDialog : DialogFragment() {
 
         typeSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+                val isSpell  = position == 1
+                effectGroup.visibility = if (isSpell) View.VISIBLE else View.GONE
+
                 val isMinion = position == 0
                 statsContainer.visibility = if (isMinion) View.VISIBLE else View.GONE
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
+    }
+    private fun refreshPreview() {
+        val entity = buildCardEntity()   // you already have the builder
+        val card   = CardMapper.toDomain(requireContext(), entity)
+
+        childFragmentManager.beginTransaction().apply {
+            previewFragment?.let { remove(it) }
+            previewFragment = CardDetailFragment.newInstance(card)
+            add(R.id.previewContainer, previewFragment!!)
+        }.commitNowAllowingStateLoss()
+
+        // keep small thumbnail in sync
+        cardImagePreview.loadCard(card)
+    }
+    private fun buildCardEntity(): CardEntity {
+        val name   = nameInput.text.toString().trim()
+        val desc   = descriptionInput.text.toString().trim()
+        val type   = if (typeSpinner.selectedItemPosition == 0) "minion" else "spell"
+        val cost   = costSeekBar.progress
+        val atk    = if (type == "minion") attackSeekBar.progress else null
+        val hp     = if (type == "minion") healthSeekBar.progress else null
+        val rarity = arrayOf("common","rare","epic","legendary")[raritySpinner.selectedItemPosition]
+
+        // spell effect
+        val effect = if (type == "spell" && effectTypeSpinner.selectedItemPosition != 0) {
+            val kind  = if (effectTypeSpinner.selectedItemPosition == 1) "damage" else "heal"
+            SpellEffect(kind, effectValuePicker.value).toString()
+        } else null
+
+        return existingCard?.copy(
+            name = name, description = desc, type = type, manaCost = cost,
+            attack = atk, health = hp, rarity = rarity, effect = effect,
+            imageUri = selectedImageUri?.let { ImageStorageManager.saveImageToInternalStorage(requireContext(), it) }
+                ?: existingCard?.imageUri
+        ) ?: CardEntity(
+            name       = name,
+            description= desc,
+            type       = type,
+            manaCost   = cost,
+            attack     = atk,
+            health     = hp,
+            effect     = effect,
+            imageResName = "ic_card_generic",
+            rarity     = rarity,
+            imageUri   = selectedImageUri?.let { ImageStorageManager.saveImageToInternalStorage(requireContext(), it) },
+            isCustom   = true
+        )
     }
 
     private fun setupSeekBars() {
@@ -126,13 +216,15 @@ class CardEditorDialog : DialogFragment() {
         attackSeekBar.max = 12
         healthSeekBar.max = 12
 
-        costSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                costLabel.text = "Cost: $progress"
+        costSeekBar.setOnSeekBarChangeListener(object: SeekBar.OnSeekBarChangeListener{
+            override fun onProgressChanged(sb: SeekBar?, p: Int, f: Boolean) {
+                costLabel.text = "Cost: $p"
+                refreshPreview()                       // <-- here
             }
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStartTrackingTouch(sb: SeekBar?) {}
+            override fun onStopTrackingTouch(sb: SeekBar?) {}
         })
+
 
         attackSeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
@@ -163,6 +255,7 @@ class CardEditorDialog : DialogFragment() {
         selectImageButton.setOnClickListener {
             imagePickerLauncher.launch("image/*")
         }
+        refreshPreview();
     }
 
     private fun populateFields(card: CardEntity) {
@@ -196,51 +289,14 @@ class CardEditorDialog : DialogFragment() {
     }
 
     private fun saveCard() {
-        val name = nameInput.text.toString().trim()
-        if (name.isEmpty()) {
+        val entity = buildCardEntity()
+        if (entity.name.isBlank()) {
             Toast.makeText(context, "Name is required", Toast.LENGTH_SHORT).show()
             return
         }
-
-        // Handle saving the selected image
-        val imagePath = selectedImageUri?.let { uri ->
-            ImageStorageManager.saveImageToInternalStorage(requireContext(), uri)
-        } ?: existingCard?.imageUri // Keep old path if no new image is selected
-
-        val description = descriptionInput.text.toString().trim()
-        val type = if (typeSpinner.selectedItemPosition == 0) "minion" else "spell"
-        val cost = costSeekBar.progress
-        val attack = if (type == "minion") attackSeekBar.progress else null
-        val health = if (type == "minion") healthSeekBar.progress else null
-
-        val rarityArray = arrayOf("common", "rare", "epic", "legendary")
-        val rarity = rarityArray[raritySpinner.selectedItemPosition]
-
-        val cardEntity = existingCard?.copy(
-            name = name,
-            description = description,
-            type = type,
-            manaCost = cost,
-            attack = attack,
-            health = health,
-            rarity = rarity,
-            imageUri = imagePath
-        ) ?: CardEntity(
-            id = 0,
-            name = name,
-            description = description,
-            type = type,
-            manaCost = cost,
-            attack = attack,
-            health = health,
-            effect = null,
-            imageResName = "ic_card_generic",
-            rarity = rarity,
-            imageUri = imagePath,
-            isCustom = true
-        )
-
-        onSaveCallback?.invoke(cardEntity)
+        onSaveCallback?.invoke(entity)
         dismiss()
+        refreshPreview();
     }
+
 }

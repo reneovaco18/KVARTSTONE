@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.rench.kvartstone.R
 import com.rench.kvartstone.data.entities.CardEntity
+import com.rench.kvartstone.ui.ext.loadCard
 
 class DeckCompositionAdapter(
     private val onRemoveCard: (Int) -> Unit,
@@ -32,7 +33,7 @@ class DeckCompositionAdapter(
         private val cardCost: TextView = itemView.findViewById(R.id.deckCardCost)
         private val cardCount: TextView = itemView.findViewById(R.id.deckCardCount)
         private val removeButton: ImageButton = itemView.findViewById(R.id.removeCardButton)
-        private val cardImage: ImageView = itemView.findViewById(R.id.deckCardImage)
+        private val cardImage: ImageView = itemView.findViewById(R.id.cardArt)
 
         fun bind(item: DeckCompositionItem) {
             val card = item.card
@@ -44,9 +45,7 @@ class DeckCompositionAdapter(
             val resourceId = itemView.context.resources.getIdentifier(
                 card.imageResName, "drawable", itemView.context.packageName
             )
-            cardImage.setImageResource(
-                if (resourceId != 0) resourceId else R.drawable.ic_card_generic
-            )
+            cardImage.loadCard(card)
 
             // Set click listeners
             removeButton.setOnClickListener { onRemoveCard(card.id) }

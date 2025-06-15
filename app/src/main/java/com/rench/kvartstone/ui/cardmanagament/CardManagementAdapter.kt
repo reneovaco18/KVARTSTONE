@@ -10,6 +10,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.rench.kvartstone.R
 import com.rench.kvartstone.data.entities.CardEntity
+import com.rench.kvartstone.ui.ext.loadCard
 
 class CardManagementAdapter(
     private val onCardClick: (CardEntity) -> Unit,
@@ -43,10 +44,7 @@ class CardManagementAdapter(
             val resourceId = itemView.context.resources.getIdentifier(
                 card.imageResName, "drawable", itemView.context.packageName
             )
-            cardImage.setImageResource(
-                if (resourceId != 0) resourceId else R.drawable.ic_card_minion_generic
-            )
-
+            cardImage.loadCard(card)
             itemView.setOnClickListener { onCardClick(card) }
             itemView.setOnLongClickListener { onCardLongClick(card); true }
             deleteButton.setOnClickListener { onDeleteClick(card) }

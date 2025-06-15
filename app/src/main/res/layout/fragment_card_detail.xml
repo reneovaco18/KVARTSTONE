@@ -1,84 +1,130 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="300dp"
-    android:layout_height="420dp"
-    android:layout_gravity="center"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_margin="16dp"
     app:cardCornerRadius="16dp"
     app:cardElevation="8dp">
 
-    <LinearLayout
+    <ScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
         android:background="#2C2C2C"
-        android:padding="16dp">
-
-        <TextView
-            android:id="@+id/cardDetailName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:textColor="@android:color/white"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            tools:text="Stonetusk Boar" />
-
-        <ImageView
-            android:id="@+id/cardDetailImage"
-            android:layout_width="match_parent"
-            android:layout_height="180dp"
-            android:layout_marginTop="8dp"
-            android:scaleType="fitCenter"
-            tools:src="@drawable/ic_card_minion_generic" />
-
-        <TextView
-            android:id="@+id/cardDetailDescription"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:layout_marginTop="8dp"
-            android:gravity="center"
-            android:textColor="#D3D3D3"
-            android:textSize="14sp"
-            tools:text="This minion has a powerful Charge ability." />
+        android:fillViewport="true">
 
         <LinearLayout
-            android:id="@+id/cardDetailStatsContainer"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_gravity="center_horizontal"
-            android:visibility="gone"
-            tools:visibility="visible">
+            android:orientation="vertical"
+            android:padding="24dp">
 
+            <!-- ① card name -->
             <TextView
-                android:id="@+id/cardDetailAttack"
-                android:layout_width="wrap_content"
+                android:id="@+id/cardDetailName"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textColor="@color/attack_red"
-                android:textSize="18sp"
+                android:gravity="center"
+                android:textColor="@android:color/white"
+                android:textSize="28sp"
                 android:textStyle="bold"
-                tools:text="Attack: 1" />
+                android:layout_marginBottom="20dp"
+                tools:text="Fireball" />
 
-            <TextView
-                android:id="@+id/cardDetailHealth"
-                android:layout_width="wrap_content"
+            <!-- ② card image -->
+            <ImageView
+                android:id="@+id/cardDetailImage"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center_horizontal"
+                android:scaleType="centerCrop"
+                android:background="@drawable/card_preview_border"
+                android:layout_marginBottom="20dp"
+                tools:src="@drawable/ic_card_generic" />
+
+            <!-- ③ properties section -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="24dp"
-                android:textColor="@color/healthy_green"
+                android:orientation="vertical"
+                android:background="#374151"
+                android:padding="20dp"
+                android:layout_marginBottom="16dp">
+
+                <TextView
+                    android:id="@+id/cardDetailManaCost"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@android:color/white"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="8dp"
+                    tools:text="Mana Cost: 4" />
+
+                <TextView
+                    android:id="@+id/cardDetailType"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@android:color/white"
+                    android:textSize="22sp"
+                    android:layout_marginBottom="8dp"
+                    tools:text="Type: SpellCard" />
+
+                <!-- ④ stats row (minions only) -->
+                <LinearLayout
+                    android:id="@+id/cardDetailStatsContainer"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginTop="8dp"
+                    android:visibility="gone"
+                    tools:visibility="visible">
+
+                    <TextView
+                        android:id="@+id/cardDetailAttack"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="@color/attack_red"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        tools:text="Attack: 2" />
+
+                    <TextView
+                        android:id="@+id/cardDetailHealth"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textColor="@color/healthy_green"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        tools:text="Health: 6" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ⑤ description -->
+            <TextView
+                android:id="@+id/cardDetailDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#1F2937"
+                android:padding="20dp"
+                android:textColor="#D3D3D3"
                 android:textSize="18sp"
-                android:textStyle="bold"
-                tools:text="Health: 1" />
+                android:lineSpacingExtra="4dp"
+                android:layout_marginBottom="24dp"
+                tools:text="Deal 6 damage to any character. This powerful spell can target minions or heroes." />
+
+            <!-- ⑥ close button -->
+            <Button
+                android:id="@+id/backButton"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:text="Close"
+                android:textSize="20sp"
+                android:layout_marginTop="8dp"/>
         </LinearLayout>
-
-        <Button
-            android:id="@+id/backButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Back"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="16dp"/>
-    </LinearLayout>
+    </ScrollView>
 </androidx.cardview.widget.CardView>

@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.rench.kvartstone.R
 import com.rench.kvartstone.data.entities.CardEntity
+import com.rench.kvartstone.ui.ext.loadCard
 
 class DeckBuilderCardAdapter(
     private val onCardClick: (CardEntity) -> Unit,
@@ -30,7 +31,7 @@ class DeckBuilderCardAdapter(
 
     inner class CardViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val cardView: CardView = itemView.findViewById(R.id.root_card_view)
-        private val cardImage: ImageView = itemView.findViewById(R.id.cardImage)
+        private val cardImage: ImageView = itemView.findViewById(R.id.cardArt)
         private val cardName: TextView = itemView.findViewById(R.id.cardName)
         private val cardCost: TextView = itemView.findViewById(R.id.cardCost)
         private val cardType: TextView = itemView.findViewById(R.id.cardType)
@@ -46,9 +47,7 @@ class DeckBuilderCardAdapter(
             val resourceId = itemView.context.resources.getIdentifier(
                 card.imageResName, "drawable", itemView.context.packageName
             )
-            cardImage.setImageResource(
-                if (resourceId != 0) resourceId else R.drawable.ic_card_generic
-            )
+            cardImage.loadCard(card)
 
             // Display stats for minion cards
             if (card.type == "minion" && card.attack != null && card.health != null) {

@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.rench.kvartstone.R
 import com.rench.kvartstone.domain.Deck
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class DeckSelectionFragment : Fragment(R.layout.fragment_deck_selection) {
 
@@ -40,9 +41,11 @@ class DeckSelectionFragment : Fragment(R.layout.fragment_deck_selection) {
     }
 
     private fun setupRecyclerView() {
-        deckAdapter = DeckSelectionAdapter { deck ->
-            viewModel.selectDeck(deck)
-        }
+        deckAdapter = DeckSelectionAdapter(
+            onDeckSelected = { deck -> viewModel.selectDeck(deck) },
+            onDeckLongHeld = { deck -> askDelete(deck) }     // NEW
+        )
+
 
         recyclerView.apply {
             adapter = deckAdapter
@@ -59,6 +62,16 @@ class DeckSelectionFragment : Fragment(R.layout.fragment_deck_selection) {
             confirmButton.isEnabled = selectedDeck != null
             deckAdapter.setSelectedDeck(selectedDeck)
         }
+    }
+    private fun askDelete(deck: Deck) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.delete_deck_title))
+            .setMessage(getString(R.string.delete_deck_msg, deck.name))
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.delete) { _, _ ->
+                viewModel.deleteDeck(deck)               // NEW VM call
+            }
+            .show()
     }
 
     private fun setupClickListeners(heroPowerId: Int) {

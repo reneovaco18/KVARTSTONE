@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.rench.kvartstone.R
 import com.rench.kvartstone.domain.MinionCard
+import com.rench.kvartstone.ui.ext.loadCard
 
 class MinionBoardAdapter(
     private val onMinionClick: (Int) -> Unit,
@@ -47,7 +48,7 @@ class MinionBoardAdapter(
     ) : RecyclerView.ViewHolder(itemView) {
 
         private val cardView: CardView = itemView as CardView
-        private val minionImage: ImageView = itemView.findViewById(R.id.minionImage)
+        private val minionImage: ImageView = itemView.findViewById(R.id.cardArt)
         private val minionAttack: TextView = itemView.findViewById(R.id.minionAttack)
         private val minionHealth: TextView = itemView.findViewById(R.id.minionHealth)
         private val divineShieldIndicator: View? = itemView.findViewById(R.id.divineShieldIndicator)
@@ -63,8 +64,9 @@ class MinionBoardAdapter(
         }
 
         fun bind(minion: MinionCard, position: Int) {
-            val imageResId = itemView.context.resources.getIdentifier(minion.imageResName, "drawable", itemView.context.packageName)
-            minionImage.setImageResource(if (imageResId != 0) imageResId else R.drawable.ic_card_minion_generic)
+
+            minionImage.loadCard(minion)
+
             minionAttack.text = minion.attack.toString()
             minionHealth.text = minion.currentHealth.toString()
             highlightBorder?.visibility = View.GONE

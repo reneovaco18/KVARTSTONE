@@ -116,7 +116,7 @@ class CardRepository(private val context: Context) {
         }
     }
 
-    private fun entityToCard(entity: CardEntity): Card {
+    fun entityToCard(entity: CardEntity): Card {
         return when (entity.type.lowercase()) {
             "minion" -> MinionCard(
                 id         = entity.id,
@@ -140,16 +140,23 @@ class CardRepository(private val context: Context) {
             else -> throw IllegalArgumentException("Unknown card type ${entity.type}")
         }
     }
-    private fun createSpellEffect(effect: String?): (GameEngineInterface, List<Any>) -> Unit =
-        when (effect?.lowercase()) {
-            "deal 2 damage" -> { _, targets ->
-                (targets.firstOrNull() as? MinionCard)?.takeDamage(2)
+    private fun createSpellEffect(raw: String?): (GameEngineInterface, List<Any>) -> Unit {
+        val s = SpellEffect.fromString(raw) ?: return { _, _ -> }
+        return when (s.type) {
+            "damage" -> { _, targets ->
+                targets.firstOrNull()?.let {
+                    when (it) {
+                        is MinionCard -> it.takeDamage(s.value)
+                        is Hero       -> it.takeDamage(s.value)
+                    }
+                }
             }
-            "deal 1 damage" -> { _, targets ->
-                (targets.firstOrNull() as? MinionCard)?.takeDamage(1)
+            "heal"   -> { engine, _ ->
+                engine.playerHero.heal(s.value)      // only player-side cards for now
             }
-            else -> { _, _ -> }
+            else     -> { _, _ -> }
         }
+    }
 
     private fun determineTargetingType(effectString: String?): TargetingType {
         return when (effectString?.lowercase()) {

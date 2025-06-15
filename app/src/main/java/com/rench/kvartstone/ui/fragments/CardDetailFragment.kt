@@ -1,72 +1,75 @@
 package com.rench.kvartstone.ui.fragments
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.LinearLayout
-import android.widget.TextView
+import android.view.*
+import android.widget.*
 import androidx.fragment.app.DialogFragment
 import com.rench.kvartstone.R
-import com.rench.kvartstone.domain.Card
-import com.rench.kvartstone.domain.MinionCard
-import com.rench.kvartstone.domain.SpellCard
+import com.rench.kvartstone.domain.*
+import com.rench.kvartstone.ui.ext.loadCard
 
 class CardDetailFragment : DialogFragment() {
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_card_detail, container, false)
-    }
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
+    ): View = inflater.inflate(R.layout.fragment_card_detail, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val card = arguments?.getParcelable<Card>(ARG_CARD) ?: return
 
-        val name: TextView = view.findViewById(R.id.cardDetailName)
-        val image: ImageView = view.findViewById(R.id.cardDetailImage)
-        val description: TextView = view.findViewById(R.id.cardDetailDescription)
-        val statsContainer: LinearLayout = view.findViewById(R.id.cardDetailStatsContainer)
-        val attack: TextView = view.findViewById(R.id.cardDetailAttack)
-        val health: TextView = view.findViewById(R.id.cardDetailHealth)
-        val backButton: Button = view.findViewById(R.id.backButton)
+        val name        = view.findViewById<TextView>(R.id.cardDetailName)
+        val cardImage   = view.findViewById<ImageView>(R.id.cardDetailImage)
+        val manaCostTxt = view.findViewById<TextView>(R.id.cardDetailManaCost)
+        val typeTxt     = view.findViewById<TextView>(R.id.cardDetailType)
+        val desc        = view.findViewById<TextView>(R.id.cardDetailDescription)
+        val statRow     = view.findViewById<LinearLayout>(R.id.cardDetailStatsContainer)
+        val atkTxt      = view.findViewById<TextView>(R.id.cardDetailAttack)
+        val hpTxt       = view.findViewById<TextView>(R.id.cardDetailHealth)
+        val closeBtn    = view.findViewById<Button>(R.id.backButton)
 
+        // populate fields
         name.text = card.name
-        val imageResId = resources.getIdentifier(card.imageResName, "drawable", requireContext().packageName)
-        image.setImageResource(if (imageResId != 0) imageResId else R.drawable.ic_card_generic)
+        cardImage.loadCard(card)  // Load the actual card image or placeholder
+        manaCostTxt.text = "Mana Cost: ${card.manaCost}"
+        typeTxt.text = "Type: ${card::class.simpleName?.replace("Card", "")}"
 
         when (card) {
             is MinionCard -> {
-                statsContainer.visibility = View.VISIBLE
-                attack.text = "Attack: ${card.attack}"
-                health.text = "Health: ${card.maxHealth}"
-                description.text = card.name // Minions often have flavor text or ability text here
+                statRow.visibility = View.VISIBLE
+                atkTxt.text = "Attack: ${card.attack}"
+                hpTxt.text = "Health: ${card.maxHealth}"
+                desc.text = if (card.hasDivineShield) {
+                    "Minion with Divine Shield • ${card.name}"
+                } else {
+                    "Minion • ${card.name}"
+                }
             }
             is SpellCard -> {
-                statsContainer.visibility = View.GONE
-                description.text = card.description
+                statRow.visibility = View.GONE
+                desc.text = card.description.ifBlank { "Cast this spell to unleash its power." }
             }
         }
 
-        backButton.setOnClickListener {
-            dismiss()
-        }
+        closeBtn.setOnClickListener { dismiss() }
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        // Make dialog take up most of the screen
+        val displayMetrics = resources.displayMetrics
+        val width = (displayMetrics.widthPixels * 0.95).toInt()
+        val height = (displayMetrics.heightPixels * 0.90).toInt()
+
+        dialog?.window?.setLayout(width, height)
     }
 
     companion object {
         private const val ARG_CARD = "card_data"
-
-        fun newInstance(card: Card): CardDetailFragment {
-            val fragment = CardDetailFragment()
-            val args = Bundle()
-            args.putParcelable(ARG_CARD, card)
-            fragment.arguments = args
-            return fragment
+        fun newInstance(card: Card) = CardDetailFragment().apply {
+            arguments = Bundle().apply { putParcelable(ARG_CARD, card) }
         }
     }
 }

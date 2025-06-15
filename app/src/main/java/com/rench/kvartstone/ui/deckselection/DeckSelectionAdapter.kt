@@ -11,7 +11,8 @@ import com.rench.kvartstone.R
 import com.rench.kvartstone.domain.Deck
 
 class DeckSelectionAdapter(
-    private val onDeckSelected: (Deck) -> Unit
+    private val onDeckSelected: (Deck) -> Unit,
+    private val onDeckLongHeld : (Deck) -> Unit      //  ← NEW
 ) : ListAdapter<Deck, DeckSelectionAdapter.DeckViewHolder>(DeckDiffCallback()) {
 
     private var selectedDeckId: Int? = null
@@ -57,6 +58,10 @@ class DeckSelectionAdapter(
 
             itemView.setOnClickListener {
                 onDeckSelected(deck)
+            }
+            itemView.setOnLongClickListener {                       // ← NEW
+                onDeckLongHeld(deck)
+                true
             }
         }
     }

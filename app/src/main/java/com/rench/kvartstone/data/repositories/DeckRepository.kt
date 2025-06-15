@@ -29,6 +29,13 @@ class DeckRepository(private val context: Context) {
             }
         }
     }
+    // data/repositories/DeckRepository.kt
+    // random deck helper
+    suspend fun getRandomDeckExcept(excludeId: Int): Deck? =
+        deckDao.getAllDecksOnce()
+            .mapNotNull { entityToDomain(it) }   // ← was it.toDomain()
+            .filter   { it.id != excludeId }
+            .randomOrNull()
 
     val customDecks: Flow<List<Deck>> = deckDao.getDecksByCustomStatus(true).map { entities ->
         entities.mapNotNull { entity ->
